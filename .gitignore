@@ -1,0 +1,17 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/log/*.log
+/pkg/
+/spec/reports/
+/tmp/
+/vendor/
+/test/dummy
+/locale/*.mo
+/locale/*/*.edit.po
+/locale/*/*.po.time_stamp
+/locale/*/*.pox
+
+Gemfile.lock

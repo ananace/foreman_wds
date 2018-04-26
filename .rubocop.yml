@@ -1,0 +1,20 @@
+---
+Rails:
+  Enabled: true
+
+# Don't enforce documentation
+Style/Documentation:
+  Enabled: false
+
+# Force before_filter until upgrade to Rails 4
+Rails/ActionFilter:
+  EnforcedStyle: filter
+
+Metrics/MethodLength:
+  Max: 20
+
+Metrics/LineLength:
+  Max: 140
+
+Style/Next:
+  Enabled: false
