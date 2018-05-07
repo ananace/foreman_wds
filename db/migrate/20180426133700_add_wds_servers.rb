@@ -1,4 +1,4 @@
-class AddWdsServers < ActiveRecord::Migration
+class AddWdsServers < ActiveRecord::Migration[4.2]
   def change
     create_table :wds_servers do |t|
       t.string :name, null: false, unique: true

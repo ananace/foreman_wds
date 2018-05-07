@@ -1,8 +1,11 @@
 Rails.application.routes.draw do
   scope '/foreman_wds' do
-    resources :wds_servers, only: %i[index show] do
-      collection do
-        get 'auto_complete_search'
+    constraints(id: %r{[^\/]+}) do
+      resources :wds_servers do
+        collection do
+          get 'auto_complete_search'
+        end
+        resources :wds_images, except: %i[show]
       end
     end
   end

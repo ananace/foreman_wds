@@ -1,5 +1,8 @@
 class WdsServersController < ::ApplicationController
   include Foreman::Controller::AutoCompleteSearch
+  include Foreman::Controller::Parameters::WdsServer
+
+  before_action :find_server, only: %i[show edit update destroy]
 
   def index
     @wds_servers = resource_base_search_and_page
@@ -23,7 +26,7 @@ class WdsServersController < ::ApplicationController
   end
 
   def update
-    if @wds_server.update_attributes(compute_profile_params)
+    if @wds_server.update(wds_server_params)
       process_success
     else
       process_error
@@ -36,5 +39,11 @@ class WdsServersController < ::ApplicationController
     else
       process_error
     end
+  end
+
+  private
+
+  def find_server
+    @wds_server = WdsServer.find(params[:id])
   end
 end

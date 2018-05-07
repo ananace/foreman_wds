@@ -1,0 +1,25 @@
+<%= form_for @wds_server, :url => (@wds_server.new_record? ? wds_servers_path : wds_server_path(name: @wds_server.name)), html: {data: {id: @wds_server.try(:id)}} do |f| %>
+  <%= base_errors_for @wds_server %>
+  <ul class="nav nav-tabs" data-tabs="tabs">
+    <li class="active"><a href="#primary" data-toggle="tab"><%= _("Compute Resource") %></a></li>
+    <% if show_location_tab? %>
+      <li><a href="#locations" data-toggle="tab"><%= _("Locations") %></a></li>
+    <% end %>
+    <% if show_organization_tab? %>
+      <li><a href="#organizations" data-toggle="tab"><%= _("Organizations") %></a></li>
+    <% end %>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane active" id="primary">
+      <%= text_f f, :name %>
+      <%= text_f f, :url, placeholder: 'https://host.example.com:5985/wsman' %>
+      <%= textarea_f f, :description, :rows => 3 %>
+      <%= text_f f, :user %>
+      <%= password_f f, :password %>
+    </div>
+    <%= render 'taxonomies/loc_org_tabs', :f => f, :obj => @wds_server %>
+  </div>
+
+  <%= submit_or_cancel f %>
+<% end %>

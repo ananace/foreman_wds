@@ -1,0 +1,25 @@
+<% title _('WDS Servers') %>
+<% title_actions new_link(_('Create WDS Server connection')),
+                 documentation_button('5.2ComputeResources') %>
+
+<table class="<%= table_css_classes 'table-fixed' %>">
+  <thead>
+    <tr>
+      <th class="col-md-6"><%= sort :name, :as => s_("WDS Server|Name") %></th>
+      <th><%= _('Actions') %></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @wds_servers.each do |server| %>
+      <tr>
+        <td class="ellipsis"><%= link_to server.name, server %></td>
+        <td>
+          <%= action_buttons(link_to_if_authorized(_('Edit'), hash_for_edit_wds_server_path(server).merge(:auth_object => server, :authorizer => authorizer)),
+                            display_delete_if_authorized(hash_for_edit_wds_server_path(:id => server).merge(:auth_object => server, :authorizer => authorizer), :data => { :confirm => _("Delete %s?") % server.name })) %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= will_paginate_with_info @wds_servers %>

@@ -1,0 +1,36 @@
+<% title @wds_server.name %>
+
+<ul class="nav nav-tabs" data-tabs="tabs">
+  <li class="active"><a href="#primary" data-toggle="tab"><%= _("WDS Server") %></a></li>
+  <li><a href="#images" data-toggle="tab"><%= _("Images") %></a></li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane active" id="primary">
+    <table class="<%= table_css_classes 'table-fixed' %>">
+      <thead>
+        <tr>
+          <th class="col-md-1"><%= _('Property') %></th>
+          <th class="col-md-11"><%= _('Value') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><%= _('Description') %></td>
+          <td><%= @wds_server.description %></td>
+        </tr>
+        <tr>
+          <td><%= _('Url') %></td>
+          <td><%= @wds_server.url %></td>
+        </tr>
+        <tr>
+          <td><%= _('User') %></td>
+          <td><%= @wds_server.user %></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="images" class="tab-pane" data-url="<%= wds_server_wds_images_path(@wds_server, image_type: :boot) %>">
+    <%= spinner(_('Loading image information ...')) %>
+  </div>
+</div>
