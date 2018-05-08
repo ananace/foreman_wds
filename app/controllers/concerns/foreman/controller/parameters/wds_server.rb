@@ -13,7 +13,7 @@ module Foreman::Controller::Parameters::WdsServer
     end
   end
 
-  def wds_server_params(top_level_hash = controller_name.singularize)
+  def wds_server_params
     self.class.wds_server_params_filter.filter_params(params, parameter_filter_context, :wds_server)
   end
 end
