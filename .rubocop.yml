@@ -1,4 +1,11 @@
 ---
+AllCops:
+  TargetRubyVersion: 2.3
+  TargetRailsVersion: 5.1
+  Exclude:
+    - '*.spec'
+    - 'Rakefile'
+
 Rails:
   Enabled: true
 
@@ -6,15 +13,54 @@ Rails:
 Style/Documentation:
   Enabled: false
 
-# Force before_filter until upgrade to Rails 4
-Rails/ActionFilter:
-  EnforcedStyle: filter
-
 Metrics/MethodLength:
-  Max: 20
+  Max: 40
 
 Metrics/LineLength:
-  Max: 140
+  Max: 190
 
-Style/Next:
+Rails/SkipsModelValidations:
   Enabled: false
+
+Lint/BooleanSymbol:
+  Enabled: false
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Style/FormatStringToken:
+  Enabled: false
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+Performance/FixedSize:
+  Exclude:
+    - 'test/**/*'
+
+Metrics/BlockLength:
+  Max: 35
+  Exclude:
+    - 'test/**/*'
+
+Metrics/ClassLength:
+  Max: 200
+  Exclude:
+    - 'test/**/*'
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Exclude:
+    - 'test/**/*'
+    - 'app/controllers/concerns/foreman/**/*'
