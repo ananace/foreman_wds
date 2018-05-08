@@ -5,12 +5,13 @@ class ForemanWds::WdsImage
 
   protected
 
-  attr_reader :json
+  def json
+    @json || {}
+  end
 
   def initialize(json = {})
-    @json = {}
     @json = json if json.is_a? Hash
-    @wds_server = @json.delete(:wds_server)
+    @wds_server = self.json.delete(:wds_server)
     load!
   end
 

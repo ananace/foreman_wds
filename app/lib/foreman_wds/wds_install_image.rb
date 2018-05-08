@@ -7,6 +7,7 @@ class ForemanWds::WdsInstallImage < ForemanWds::WdsImage
   end
 
   def reload
+    return false if wds_server.nil?
     @json = wds_server.install_image(name)
     load!
   end
