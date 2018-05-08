@@ -25,11 +25,11 @@ class WdsServer < ActiveRecord::Base
   default_scope -> { order('wds_servers.name') }
 
   def boot_image(name)
-    images(:boot, name)
+    images(:boot, name).first
   end
 
   def install_image(name)
-    images(:install, name)
+    images(:install, name).first
   end
 
   def boot_images
@@ -43,9 +43,15 @@ class WdsServer < ActiveRecord::Base
   private
 
   def images(type, name = nil)
-    JSON.parse client.shell(:powershell) do |s|
-      s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name}'" if name} | ConvertTo-Json")
-    end.stdout
+    raise ArgumentError, 'Type must be :boot or :install' unless %i[boot install].include? type
+
+    objects = JSON.parse(client.shell(:powershell) do |s|
+      s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json")
+    end.stdout, symbolize_names: true)
+
+    objects.map do |obj|
+      Object.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
+    end
   end
 
   def client
