@@ -1,4 +1,4 @@
-class WdsInstallImage < WdsImage
+class ForemanWds::WdsInstallImage < ForemanWds::WdsImage
   attr_accessor :compression, :dependent_files, :format, :image_group,
                 :partition_style, :security, :staged, :unattend_file_present
 

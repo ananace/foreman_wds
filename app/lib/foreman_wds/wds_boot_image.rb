@@ -1,4 +1,4 @@
-class WdsBootImage < WdsImage
+class ForemanWds::WdsBootImage < ForemanWds::WdsImage
   def initialize(json = {})
     super json
   end

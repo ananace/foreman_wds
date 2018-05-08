@@ -1,4 +1,4 @@
-class WdsImage
+class ForemanWds::WdsImage
   attr_accessor :id, :name, :description, :enabled, :file_name,
                 :product_family, :product_name, :version
   attr_reader :wds_server
