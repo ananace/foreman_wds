@@ -16,7 +16,7 @@ class ForemanWds::WdsImage
 
   def load!
     json.each do |k, v|
-      sym = "#{k.underscore}=".to_sym
+      sym = "#{k.to_s.underscore}=".to_sym
       send sym, v if respond_to? sym
     end
   end
