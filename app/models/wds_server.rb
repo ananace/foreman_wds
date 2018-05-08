@@ -50,7 +50,7 @@ class WdsServer < ActiveRecord::Base
     end.stdout, symbolize_names: true)
 
     objects.map do |obj|
-      Object.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
+      ForemanWds.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
     end
   end
 
