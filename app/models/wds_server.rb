@@ -40,6 +40,12 @@ class WdsServer < ActiveRecord::Base
     images(:install)
   end
 
+  def test_connection
+    client.run_wql('SELECT * FROM Win32_UTCTime').key? :win32_utc_time
+  rescue StandardError
+    false
+  end
+
   private
 
   def images(type, name = nil)
@@ -55,6 +61,6 @@ class WdsServer < ActiveRecord::Base
   end
 
   def client
-    @client ||= Winrm::Connection.new endpoint: @url, transport: :negotiate, username: @user, password: @password
+    @client ||= WinRM::Connection.new endpoint: url, transport: :negotiate, user: user, password: password
   end
 end

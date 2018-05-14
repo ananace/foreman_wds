@@ -20,8 +20,9 @@ module ForemanWds
         menu :top_menu, :wds_servers,
              url_hash: { controller: :wds_servers, action: :index },
              caption: N_('WDS Servers'),
-             parent: :infrastructure_menu,
-             after: :compute_profiles
+             parent: :infrastructure_menu
+
+        provision_method 'wds', N_('WDS Server')
       end
     end
   end

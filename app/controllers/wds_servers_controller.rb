@@ -41,6 +41,19 @@ class WdsServersController < ::ApplicationController
     end
   end
 
+  def test_connection
+    # wds_id is posted from AJAX function. wds_id is nil if new
+    if params[:wds_id].present?
+      @wds_server = WdsServer.authorized(:edit_wds_server).find(params[:wds_id])
+      @wds_server.attributes = wds_server_params.reject { |k, v| k == :password && v.blank? }
+    else
+      @wds_server = WdsServer.new(wds_server_params)
+    end
+
+    @wds_server.test_connection
+    render partial: 'form', locals: { wds_server: @wds_server }
+  end
+
   private
 
   def find_server

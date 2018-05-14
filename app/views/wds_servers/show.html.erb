@@ -1,4 +1,5 @@
 <% title @wds_server.name %>
+<% title_actions link_to_if_authorized(_('Edit'), hash_for_edit_wds_server_path(@wds_server).merge(:auth_object => @wds_server), :class => "btn btn-default")  %>
 
 <ul class="nav nav-tabs" data-tabs="tabs">
   <li class="active"><a href="#primary" data-toggle="tab"><%= _("WDS Server") %></a></li>
