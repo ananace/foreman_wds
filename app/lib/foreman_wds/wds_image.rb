@@ -3,6 +3,16 @@ class ForemanWds::WdsImage
                 :product_family, :product_name, :version
   attr_reader :wds_server
 
+  def inspect
+    Kernel.format('#<%<class>s:%<id>x %<variables>s>',
+                  class: self.class,
+                  id: (object_id << 1),
+                  variables: instance_variables
+                    .reject { |v| %i[@json @wds_server].include?(v) }
+                    .map { |v| "#{v}=#{instance_variable_get(v).inspect}" }
+                    .join(' '))
+  end
+
   protected
 
   def json
