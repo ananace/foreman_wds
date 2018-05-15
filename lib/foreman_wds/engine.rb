@@ -2,7 +2,7 @@ module ForemanWds
   class Engine < ::Rails::Engine
     engine_name 'foreman_wds'
 
-    #config.autoload_paths += Dir["#{config.root}/app/lib"]
+    config.autoload_paths += Dir["#{config.root}/app/lib"]
     config.autoload_paths += Dir["#{config.root}/app/controllers/concerns"]
     config.autoload_paths += Dir["#{config.root}/app/models/concerns"]
     config.autoload_paths += Dir["#{config.root}/app/services"]

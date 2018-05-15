@@ -1,6 +1,6 @@
 require 'winrm'
 
-class WdsServer < ActiveRecord::Base
+class WdsServer < ApplicationRecord
   include Encryptable
   extend FriendlyId
   friendly_id :name
@@ -59,9 +59,11 @@ class WdsServer < ActiveRecord::Base
   def images(type, name = nil)
     raise ArgumentError, 'Type must be :boot or :install' unless %i[boot install].include? type
 
-    objects = JSON.parse(client.shell(:powershell) do |s|
+    objects = client.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE ImageName=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym]
+    objects = nil if objects.empty?
+    objects ||= [JSON.parse(client.shell(:powershell) do |s|
       s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json")
-    end.stdout, symbolize_names: true)
+    end.stdout, symbolize_names: true)].flatten
 
     objects.map do |obj|
       ForemanWds.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
