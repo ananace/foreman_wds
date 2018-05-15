@@ -33,17 +33,25 @@ class WdsServer < ActiveRecord::Base
   end
 
   def boot_images
-    images(:boot)
+    cache.cache(:boot_images) do
+      images(:boot)
+    end
   end
 
   def install_images
-    images(:install)
+    cache.cache(:install_images) do
+      images(:install)
+    end
   end
 
   def test_connection
     client.run_wql('SELECT * FROM Win32_UTCTime').key? :win32_utc_time
   rescue StandardError
     false
+  end
+
+  def refresh_cache
+    cache.refresh
   end
 
   private
@@ -58,6 +66,10 @@ class WdsServer < ActiveRecord::Base
     objects.map do |obj|
       ForemanWds.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
     end
+  end
+
+  def cache
+    @cache ||= WdsImageCache.new(self)
   end
 
   def client

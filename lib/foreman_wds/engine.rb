@@ -5,6 +5,7 @@ module ForemanWds
     #config.autoload_paths += Dir["#{config.root}/app/lib"]
     config.autoload_paths += Dir["#{config.root}/app/controllers/concerns"]
     config.autoload_paths += Dir["#{config.root}/app/models/concerns"]
+    config.autoload_paths += Dir["#{config.root}/app/services"]
 
     initializer 'foreman_wds.load_app_instance_data' do |app|
       ForemanWds::Engine.paths['db/migrate'].existent.each do |path|

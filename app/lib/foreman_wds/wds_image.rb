@@ -13,6 +13,15 @@ class ForemanWds::WdsImage
                     .join(' '))
   end
 
+  def marshal_dump
+    @json
+  end
+
+  def marshal_load(json)
+    @json = json
+    load!
+  end
+
   protected
 
   def json
