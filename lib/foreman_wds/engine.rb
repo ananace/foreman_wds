@@ -24,6 +24,7 @@ module ForemanWds
              parent: :infrastructure_menu
 
         provision_method 'wds', N_('WDS Server')
+        template_labels 'wds_unattend' => N_('WDS Unattend file template')
       end
     end
   end
