@@ -27,5 +27,29 @@ module ForemanWds
         template_labels 'wds_unattend' => N_('WDS Unattend file template')
       end
     end
+
+    assets_to_precompile =
+      Dir.chdir(root) do
+        Dir['app/assets/javascripts/**/*'].map do |f|
+          f.split(File::SEPARATOR, 4).last
+        end
+      end
+
+    initializer 'foreman_wds.assets.precompile' do |app|
+      app.config.assets.precompile += assets_to_precompile
+    end
+
+    initializer 'foreman_wds.configure_assets', group: :assets do
+      SETTINGS[:foreman_wds] = { assets: { precompile: assets_to_precompile } }
+    end
+
+    config.to_prepare do
+      begin
+        Host::Managed.send(:prepend, ForemanWds::HostExtensions)
+        HostsController.send(:include, ForemanWds::HostsControllerExtensions)
+      rescue StandardError => e
+        Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
+      end
+    end
   end
 end

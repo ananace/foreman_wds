@@ -1,0 +1,15 @@
+<%= javascript 'host_edit_extensions' %>
+
+<div id="wds_provisioning" <%= display? !@host.wds_build? %>>
+  <% if @host.new_record? || @host.type_changed? -%>
+      <%= checkbox_f f, :build, :help_inline => _("Enable this host for provisioning") %>
+
+  <% end %>
+  <span id="wds_server_select">
+    <%= render 'wds_servers/server_select', item: @host %>
+  </span>
+
+  <span id="wds_image_select">
+    <%= render 'wds_servers/image_select', item: @host %>
+  </span>
+</div>

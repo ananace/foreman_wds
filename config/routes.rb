@@ -10,4 +10,13 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  constraints(id: /[^\/]+/) do
+    resources :hosts do
+      collection do
+        post 'wds_server_selected'
+        post 'wds_image_selected'
+      end
+    end
+  end
 end
