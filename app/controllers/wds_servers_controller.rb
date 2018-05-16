@@ -2,7 +2,7 @@ class WdsServersController < ::ApplicationController
   include Foreman::Controller::AutoCompleteSearch
   include Foreman::Controller::Parameters::WdsServer
 
-  before_action :find_server, only: %i[show edit update destroy]
+  before_action :find_server, except: %i[index new]
 
   def index
     @wds_servers = resource_base_search_and_page
@@ -52,6 +52,18 @@ class WdsServersController < ::ApplicationController
 
     @wds_server.test_connection
     render partial: 'form', locals: { wds_server: @wds_server }
+  end
+
+  def refresh_cache
+    @wds_server.refresh_cache
+
+    render partial: 'form', locals: { wds_server: @wds_server }
+  end
+
+  def wds_images
+    @images = @wds_server.boot_images + @wds_server.install_images
+
+    render partial: 'wds_images/list'
   end
 
   private

@@ -13,6 +13,16 @@ class ForemanWds::WdsImage
                     .join(' '))
   end
 
+  def type_name
+    self.class
+        .name
+        .demodulize
+        .underscore
+        .split('_')
+        .map.with_index { |v, i| i.zero? ? v.upcase : v.capitalize }
+        .join ' '
+  end
+
   def marshal_dump
     @json
   end

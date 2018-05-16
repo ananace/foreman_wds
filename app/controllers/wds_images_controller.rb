@@ -3,18 +3,10 @@ class WdsImagesController < ApplicationController
   before_action :find_resource, only: %i[edit update destroy]
 
   def index
-    @images = @wds_server.send params[:image_type].to_sym == :boot ? :boot_images : :install_images
-
-    respond_to do |format|
-      format.html { render partial: 'images/list' }
-      format.json do
-        render json: @images.select do |img|
-          keep = true
-          keep &&= img[:architecture] == wdsify_arch
-          keep &&= img[:product_family] == wdsify_os.family
-          keep
-        end
-      end
+    if params[:image_type]
+      @images = @wds_server.send params[:image_type].to_sym == :boot ? :boot_images : :install_images
+    else
+      @images = @wds_server.boot_images + @wds_server.install_images
     end
   end
 

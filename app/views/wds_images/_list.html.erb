@@ -1,0 +1,34 @@
+<% title _('WDS Images') %>
+
+<table id="wds_images" class="<%= table_css_classes %>" data-table='inline'>
+  <thead>
+    <tr>
+      <th><%= s_("Image|Name") %></th>
+      <th><%= s_("Image|Group Name") %></th>
+      <th><%= s_("Image|File Name") %></th>
+      <th><%= s_("Image|Version") %></th>
+      <th><%= s_("Image|Enabled") %></th>
+      <th><%= s_("Image|Type") %></th>
+    </tr>
+  </thead>
+  <tbody>
+  <% @images.each do |image| %>
+    <tr>
+      <td><%= image.name %></td>
+      <td><%= image.image_group if image.respond_to? :image_group %></td>
+      <td><%= image.file_name %></td>
+      <td><%= image.version %></td>
+      <td>
+      <%- if image.enabled -%>
+        <%= icon_text 'toggle-on', _('Enabled'),
+            { kind: 'fa', class: 'center text-success fa-lg', title: _('Enabled') } %>
+      <%- else -%>
+        <%= icon_text 'toggle-off', _('Disabled'),
+            { kind: 'fa', class: 'center fa-lg', title: _('Disabled') } %>
+      <%- end -%>
+      </td>
+      <td><%= image.type_name %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

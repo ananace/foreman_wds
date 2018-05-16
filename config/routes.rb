@@ -6,7 +6,10 @@ Rails.application.routes.draw do
           get 'auto_complete_search'
           post 'test_connection'
         end
-        resources :wds_images, except: %i[show]
+        member do
+          post 'refresh_cache'
+          get 'wds_images'
+        end
       end
     end
   end

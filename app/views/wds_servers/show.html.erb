@@ -1,5 +1,8 @@
 <% title @wds_server.name %>
-<% title_actions link_to_if_authorized(_('Edit'), hash_for_edit_wds_server_path(@wds_server).merge(:auth_object => @wds_server), :class => "btn btn-default")  %>
+<% title_actions \
+  display_link_if_authorized(_('Refresh Cache'), hash_for_refresh_cache_wds_server_path(@wds_server).merge(:auth_object => @wds_server), method: :post, class: 'btn btn-default'),
+  link_to_if_authorized(_('Edit'), hash_for_edit_wds_server_path(@wds_server).merge(:auth_object => @wds_server), class: 'btn btn-default') %>
+<% javascript 'foreman_wds/wds_servers' %>
 
 <ul class="nav nav-tabs" data-tabs="tabs">
   <li class="active"><a href="#primary" data-toggle="tab"><%= _("WDS Server") %></a></li>
@@ -16,10 +19,12 @@
         </tr>
       </thead>
       <tbody>
+        <%- unless @wds_server.description.empty? -%>
         <tr>
           <td><%= _('Description') %></td>
           <td><%= @wds_server.description %></td>
         </tr>
+        <%- end -%>
         <tr>
           <td><%= _('Url') %></td>
           <td><%= @wds_server.url %></td>
@@ -31,7 +36,7 @@
       </tbody>
     </table>
   </div>
-  <div id="images" class="tab-pane" data-url="<%= wds_server_wds_images_path(@wds_server, image_type: :boot) %>">
+  <div id="images" class="tab-pane" data-url="<%= wds_images_wds_server_path(@wds_server) %>#wds_images">
     <%= spinner(_('Loading image information ...')) %>
   </div>
 </div>
