@@ -14,7 +14,7 @@ function wds_server_selected(element){
     success: function(request) {
       $('#wds_image_select').html(request);
     }
-  })
+  });
 }
 
 function wds_provision_method_selected() {
@@ -25,3 +25,8 @@ function wds_provision_method_selected() {
     $('#host_compute_attributes_template').attr('disabled', false);
 }
 $(document).on('change', '#host_provision_method_wds', wds_provision_method_selected);
+
+$(function() {
+  var caps = $('#capabilities').val() || $('#bare_metal_capabilities').val();
+  update_capabilities(caps);
+})();

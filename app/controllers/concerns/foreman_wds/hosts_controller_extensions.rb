@@ -1,7 +1,6 @@
 module ForemanWds
   module HostsControllerExtensions
     def wds_server_selected
-      puts params
       item = @host || item_object
       item.wds_server_id = params[:host][:wds_server_id]
 

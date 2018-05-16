@@ -1,13 +1,23 @@
 <%= fields_for item do |f| %>
   <%-
-    images = f.object.public_send(:wds_server).install_images rescue []
-    images = images.select { |img| img.version == "#{f.object.operatingsystem.major}.#{f.object.operatingsystem.minor}" } if f.object.operatingsystem
+    server = f.object.public_send(:wds_server) rescue nil
+    images = server.all_images rescue []
+    boot_images = images.select { |img| img.is_a?(ForemanWds::WdsBootImage) }
+    install_images = images.select { |img| img.is_a?(ForemanWds::WdsInstallImage) }
+    install_images = install_images.select { |img| img.version == "#{f.object.operatingsystem.major}.#{f.object.operatingsystem.minor}" } if f.object.operatingsystem
   -%>
-  <%= select_f f, :wds_image_name, images, :name, :name,
-    { selected: item.wds_image_name, include_blank: blank_or_inherit_f(f, :wsd_server) },
+  <%= select_f f, :wds_install_image_name, install_images, :name, :name,
+    { selected: item.wds_install_image_name, include_blank: blank_or_inherit_f(f, :wsd_server) },
     { label: _("WDS Install Image"),
-      disabled: images.empty? ? true : false,
+      disabled: install_images.empty? ? true : false,
       help_inline: :indicator,
-      onchange: 'wds_image_selected(this);', :'data-url' => ''||method_path('wds_image_selected'), :'data-type' => controller_name.singularize, required: true}
+    } # onchange: 'wds_image_selected(this);', :'data-url' => ''||method_path('wds_image_selected'), :'data-type' => controller_name.singularize, required: true}
+  %>
+  <%= select_f f, :wds_boot_image_name, boot_images, :name, :name,
+    { selected: item.wds_boot_image_name || (boot_images.count == 1 && boot_images.first.name), include_blank: blank_or_inherit_f(f, :wsd_server) },
+    { label: _("WDS Boot Image"),
+      disabled: boot_images.count < 2 ? true : false,
+      help_inline: :indicator,
+    } # onchange: 'wds_image_selected(this);', :'data-url' => ''||method_path('wds_image_selected'), :'data-type' => controller_name.singularize, required: true}
   %>
 <% end %>

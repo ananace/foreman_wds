@@ -44,6 +44,10 @@ class WdsServer < ApplicationRecord
     end
   end
 
+  def all_images
+    boot_images + install_images
+  end
+
   def test_connection
     client.run_wql('SELECT * FROM Win32_UTCTime').key? :win32_utc_time
   rescue StandardError
