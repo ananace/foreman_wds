@@ -12,4 +12,12 @@
   <span id="wds_image_select">
     <%= render 'wds_servers/image_select', item: @host %>
   </span>
+
+  <span id="boot_loader_select">
+    <%= select_f f, :pxe_loader, [['BIOS', 'WDS BIOS'], ['UEFI', 'WDS UEFI']], :last, :first,
+      { selected: blank_or_inherit_f(f, :pxe_loader) },
+      label: _('PXE loader'),
+      required: true
+    %>
+  </span>
 </div>

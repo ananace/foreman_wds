@@ -7,6 +7,7 @@
       <th><%= s_("Image|Group Name") %></th>
       <th><%= s_("Image|File Name") %></th>
       <th><%= s_("Image|Version") %></th>
+      <th><%= s_("Image|Architecture") %></th>
       <th><%= s_("Image|Enabled") %></th>
       <th><%= s_("Image|Type") %></th>
     </tr>
@@ -18,6 +19,7 @@
       <td><%= image.image_group if image.respond_to? :image_group %></td>
       <td><%= image.file_name %></td>
       <td><%= image.version %></td>
+      <td><%= image.architecture %></td>
       <td>
       <%- if image.enabled -%>
         <%= icon_text 'toggle-on', _('Enabled'),

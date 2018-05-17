@@ -35,17 +35,44 @@ class WdsServer < ApplicationRecord
   def boot_images
     cache.cache(:boot_images) do
       images(:boot)
-    end
+    end.each { |i| i.wds_server = self }
   end
 
   def install_images
     cache.cache(:install_images) do
       images(:install)
-    end
+    end.each { |i| i.wds_server = self }
   end
 
   def all_images
     boot_images + install_images
+  end
+
+  def timezone
+    cache.cache(:timezone) do
+      client.run_wql('SELECT Bias FROM Win32_TimeZone')[:xml_fragment].first[:bias].to_i * 60
+    end
+  end
+
+  def next_server_ip
+    IPSocket.getaddress URI(url).host
+  rescue SocketError
+    ::Rails.logger.info "Failed to look up IP of WDS server #{name}"
+    nil
+  end
+
+  def bootfile_path(architecture_name, loader = :bios, boot_type = :pxe)
+    file_name = nil
+    if boot_type == :local
+      file_name = 'bootmgfw.efi' if loader == :uefi
+      file_name = 'abortpxe.com' if loader == :bios
+    elsif boot_type == :pxe
+      file_name = 'wdsmgfw.efi' if loader == :uefi
+      file_name = 'wdsnbp.com' if loader == :bio
+    end
+    raise ArgumentError, 'Invalid loader or boot type provided' if file_name.nil?
+
+    "boot\\#{architecture_name}\\#{file_name}"
   end
 
   def test_connection
