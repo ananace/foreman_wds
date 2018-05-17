@@ -17,6 +17,20 @@ function wds_server_selected(element){
   });
 }
 
+var old_os_selected = os_selected;
+os_selected = function(element){
+  old_os_selected(element);
+
+  if ($('#os_select select').val() === '') {
+    $('#wds_server_select select').val('');
+    $('#wds_image_select select').val('');
+    $('#wds_server_select select').attr('disabled', true);
+    $('#wds_image_select select').attr('disabled', true);
+  } else {
+    $('#wds_server_select select').attr('disabled', false);
+  }
+};
+
 function wds_provision_method_selected() {
   $('div[id*=_provisioning]').hide();
   $('#wds_provisioning').show();

@@ -2,7 +2,7 @@ class WdsServersController < ::ApplicationController
   include Foreman::Controller::AutoCompleteSearch
   include Foreman::Controller::Parameters::WdsServer
 
-  before_action :find_server, except: %i[index new]
+  before_action :find_server, except: %i[index new create]
 
   def index
     @wds_servers = resource_base_search_and_page

@@ -14,7 +14,7 @@
   </span>
 
   <span id="boot_loader_select">
-    <%= select_f f, :pxe_loader, [['BIOS', 'WDS BIOS'], ['UEFI', 'WDS UEFI']], :last, :first,
+    <%= select_f f, :pxe_loader, [['BIOS', 'PXELinux BIOS'], ['UEFI', 'PXELinux UEFI']], :last, :first,
       { selected: blank_or_inherit_f(f, :pxe_loader) },
       label: _('PXE loader'),
       required: true

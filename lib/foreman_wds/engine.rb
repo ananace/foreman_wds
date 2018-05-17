@@ -23,6 +23,8 @@ module ForemanWds
              caption: N_('WDS Servers'),
              parent: :infrastructure_menu
 
+        register_facet ForemanWds::WdsFacet, :wds_facet
+
         provision_method 'wds', N_('WDS Server')
         template_labels 'wds_unattend' => N_('WDS Unattend file template')
       end
@@ -46,6 +48,7 @@ module ForemanWds
     config.to_prepare do
       begin
         Host::Managed.send(:prepend, ForemanWds::HostExtensions)
+        Nic::Managed.send(:prepend, ForemanWds::NicExtensions)
         HostsController.send(:include, ForemanWds::HostsControllerExtensions)
       rescue StandardError => e
         Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"

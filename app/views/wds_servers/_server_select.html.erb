@@ -5,6 +5,7 @@
   <%= select_f f, :wds_server_id, wds_servers, :id, :name,
     { include_blank: true },
     { label: _('WDS Server'),
+      disabled: f.object.operatingsystem.nil? || f.object.operatingsystem.family != 'Windows',
       help_inline: :indicator,
       required: true,
       onchange: 'wds_server_selected(this);', :'data-url' => method_path('wds_server_selected'), :'data-type' => controller_name.singularize } %>
