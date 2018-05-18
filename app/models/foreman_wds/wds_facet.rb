@@ -3,7 +3,7 @@ module ForemanWds
     include Facets::Base
 
     belongs_to :wds_server,
-               class_name: '::ForemanWds::WdsServer',
+               class_name: '::WdsServer',
                inverse_of: :wds_facets
 
     validates_lengths_from_database

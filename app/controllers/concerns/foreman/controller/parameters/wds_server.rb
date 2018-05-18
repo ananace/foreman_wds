@@ -3,7 +3,7 @@ module Foreman::Controller::Parameters::WdsServer
 
   class_methods do
     def wds_server_params_filter
-      Foreman::ParameterFilter.new(::Host::Managed).tap do |filter|
+      Foreman::ParameterFilter.new(::WdsServer).tap do |filter|
         filter.permit :name,
                       :description,
                       :url,
