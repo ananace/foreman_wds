@@ -11,9 +11,9 @@ module ForemanWds
     # FIXME Ugly hack
     # Forcefully adds wds_facet to the permitted params
     def host_params(top_level_hash = controller_name.singularize)
-      keep_param(params, top_level_hash, :compute_attributes, :wds_facet_attributes) do
-        self.class.host_params_filter.filter_params(params, parameter_filter_context, top_level_hash)
-      end
+      params[:host][:wds_facet].permit! if params.key?(:host) && params[:host][:wds_facet].is_a?(ActionController::Parameters)
+
+      super(top_level_hash)
     end
   end
 end
