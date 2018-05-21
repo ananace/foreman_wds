@@ -2,7 +2,8 @@ module ForemanWds
   module HostExtensions
     def self.prepended(base)
       base.class_eval do
-        before_provision :orchestrate_wds_client
+        after_build :ensure_wds_client
+        before_provision :remove_wds_client
       end
     end
 
@@ -39,6 +40,10 @@ module ForemanWds
       super
     end
 
+    def can_be_built?
+      super || (wds? && !build?)
+    end
+
     def wds_build?
       provision_method == 'wds'
     end
@@ -57,14 +62,31 @@ module ForemanWds
 
     private
 
-    def orchestrate_wds_client
+    def ensure_wds_client
+      raise NotImplementedError, 'Not implemented yet'
       return unless wds?
 
       client = wds_server.client(self) || wds_server.create_client(self)
 
       Rails.logger.info client
-    rescue NotImplementedException
-      Rails.logger.info 'WDS orchestration is not implemented yet'
+      true
+    rescue ScriptError, StandardError => ex
+      Rails.logger.error "Failed to ensure WDS client, #{ex}"
+      # false
+    end
+
+    def remove_wds_client
+      raise NotImplementedError, 'Not implemented yet'
+      return unless wds?
+
+      client = wds_server.client(self)
+      return unless client
+
+      wds_server.delete_client(client)
+      true
+    rescue ScriptError, StandardError => ex
+      Rails.logger.error "Failed to remove WDS client, #{ex}"
+      # false
     end
   end
 end

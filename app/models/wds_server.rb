@@ -39,8 +39,23 @@ class WdsServer < ApplicationRecord
     images(:install, name).first
   end
 
+  def clients
+    objects = connection.run_wql('SELECT * FROM MSFT_WdsClient')[:msft_wdsclient]
+    objects = nil if objects.empty?
+    objects ||= begin
+      data = connection.shell(:powershell) do |s|
+        s.run('Get-WdsClient | ConvertTo-Json -Compress')
+      end.stdout
+      data = '[]' if data.empty?
+
+      [JSON.parse(data, symbolize_names: true)].flatten
+    end
+
+    objects
+  end
+
   def client(host)
-    raise NotImplementedException, 'Not finished yet'
+    clients.find { |c| [host.mac, host.name].include? c[:device_id] }
   end
 
   def boot_images
@@ -55,14 +70,8 @@ class WdsServer < ApplicationRecord
     end.each { |i| i.wds_server = self }
   end
 
-  def clients
-    JSON.parse(connection.shell(:powershell) do |s|
-      s.run('Get-WDSClient | ConvertTo-Json -Compress')
-    end.stdout, symbolize_names: true)
-  end
-
   def create_client(host)
-    raise NotImplementedException, 'Not finished yet'
+    raise NotImplementedError, 'Not finished yet'
   end
 
   def all_images
@@ -119,7 +128,7 @@ class WdsServer < ApplicationRecord
     objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE ImageName=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym]
     objects = nil if objects.empty?
     objects ||= [JSON.parse(connection.shell(:powershell) do |s|
-      s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json")
+      s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json -Compress")
     end.stdout, symbolize_names: true)].flatten
 
     objects.map do |obj|
