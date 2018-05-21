@@ -92,13 +92,15 @@ class WdsServer < ApplicationRecord
   end
 
   def self.bootfile_path(architecture_name, loader = :bios, boot_type = :pxe)
+    puts "bootfile_path(#{architecture_name.inspect}, #{loader.inspect}, #{boot_type.inspect})"
+
     file_name = nil
     if boot_type == :local
       file_name = 'bootmgfw.efi' if loader == :uefi
       file_name = 'abortpxe.com' if loader == :bios
     elsif boot_type == :pxe
       file_name = 'wdsmgfw.efi' if loader == :uefi
-      file_name = 'wdsnbp.com' if loader == :bio
+      file_name = 'wdsnbp.com' if loader == :bios
     end
     raise ArgumentError, 'Invalid loader or boot type provided' if file_name.nil?
 

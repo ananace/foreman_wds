@@ -7,12 +7,7 @@ module ForemanWds
       end
     end
 
-    attr_accessor :wds_server_id
-
-    def wds_server
-      return wds_facet.wds_server if wds_facet
-      WdsServer.find(@wds_server_id)
-    end
+    delegate :wds_server, to: :wds_facet
 
     def wds_boot_image
       ensure_wds_facet.boot_image
