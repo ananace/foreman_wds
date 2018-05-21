@@ -1,0 +1,97 @@
+<%#
+kind: wds_unattend
+name: Unattend Windows Server 2016
+oses:
+- Windows Server 2016
+-%>
+<%
+registration = {
+  organization: 'Organization name',
+  owner: 'Owner name'
+}
+-%>
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <SetupUILanguage>
+        <UILanguage>en-US</UILanguage>
+      </SetupUILanguage>
+      <InputLocale>en-US</InputLocale>
+      <SystemLocale>en-US</SystemLocale>
+      <UserLocale>en-US</UserLocale>
+    </component>
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<%= indent(6) { @host.diskLayout } %>
+    </component>
+  </settings>
+  <settings pass="specialize">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" 
+language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <ComputerName><%= @host.shortname %></ComputerName>
+      <RegisteredOrganization><%= registration[:organization] %></RegisteredOrganization>
+      <RegisteredOwner><%= registration[:owner] %></RegisteredOwner>
+      <TimeZone>W. Europe Standard Time</TimeZone>
+    </component>
+    <component name="Microsoft-Windows-TCPIP" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Interfaces>
+        <%- iface = @host.primary_interface # @host.managed_interfaces.each.with_index do |iface, i| -%>
+        <Interface wcm:action="add">
+          <Identifier><%= iface.identifier.empty? ? 'Ethernet0' : iface.identifier %></Identifier>
+          <UnicastIpAddresses>
+          <%- if !iface.ip.empty? && iface.subnet -%>
+            <IpAddress wcm:action="add" wcm:keyValue="1"><%= iface.ip %>/<%= iface.subnet.cidr %></IpAddress>
+          <%- end -%>
+          <%- if !iface.ip6.empty? && iface.subnet6 -%>
+            <IpAddress wcm:action="add" wcm:keyValue="2"><%= iface.ip6 %>/<%= iface.subnet6.cidr %></IpAddress>
+          <%- end -%>
+          </UnicastIpAddresses>
+          <Routes>
+          <%- if iface.subnet && !iface.subnet.gateway.empty? -%>
+            <Route wcm:action="add">
+              <Identifier>1</Identifier>
+              <Metric>10</Metric>
+              <NextHopAddress><%= iface.subnet.gateway %></NextHopAddress>
+              <Prefix>0.0.0.0/0</Prefix>
+            </Route>
+          <%- end -%>
+          <%- if iface.subnet6 && !iface.subnet6.gateway.empty? -%>
+            <Route wcm:action="add">
+              <Identifier>1</Identifier>
+              <Metric>10</Metric>
+              <NextHopAddress><%= iface.subnet6.gateway %></NextHopAddress>
+              <Prefix>::/0</Prefix>
+            </Route>
+          <%- end -%>
+          </Routes>
+        </Interface>
+      </Interfaces>
+    </component>
+    <component name="Microsoft-Windows-DNS-Client" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <DNSSuffixSearchOrder>
+        <DomainName wcm:action="add" wcm:keyValue="1"><%= @host.domain %></DomainName>
+      </DNSSuffixSearchOrder>
+      <Interfaces>
+        <Interface wcm:action="add">
+          <DNSServerSearchOrder>
+            <IpAddress wcm:action="add" wcm:keyValue="1"><%= iface.subnet.dns_primary %></IpAddress>
+            <IpAddress wcm:action="add" wcm:keyValue="2"><%= iface.subnet.dns_secondary %></IpAddress>
+          </DNSServerSearchOrder>
+          <Identifier><%= iface.identifier.empty? ? 'Ethernet0' : iface.identifier %></Identifier>
+        </Interface>
+      </Interfaces>
+      <DNSDomain><%= @host.domain %></DNSDomain>
+    </component>
+  </settings>
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <UserAccounts>
+        <AdministratorPassword>
+          <Value><%= @host.unattend_pass 'AdministratorPassword' %></Value>
+          <PlainText>false</PlainText>
+        </AdministratorPassword>
+      </UserAccounts>
+    </component>
+  </settings>
+</unattend>
