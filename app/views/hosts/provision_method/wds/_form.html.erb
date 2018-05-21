@@ -21,4 +21,11 @@
       required: true
     %>
   </span>
+
+  <%= select_f f, :ptable_id, os_ptable, :id, :to_label,
+    {:include_blank => blank_or_inherit_f(f, :ptable), :selected => @host.ptable_id},
+    {:label => _("Partition Table"), :disabled => os_ptable.empty?, :required => true}
+  %>
+  <%= textarea_f f, :disk, :size => "col-md-8", :rows => "4",
+           :help_block => _("What ever text(or ERB template) you use in here, would be used as your OS disk layout options If you want to use the partition table option, delete all of the text from this field") %>
 </div>

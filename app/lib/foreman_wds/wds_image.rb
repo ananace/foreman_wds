@@ -1,6 +1,8 @@
 class ForemanWds::WdsImage
   WDS_IMAGE_ARCHES = [nil, /^i.86|x86$/i, /^ia64$/i, /^x86_64|x64$/i, /^arm$/i].freeze
   WDS_ARCH_NAMES = [nil, 'x86', 'ia64', 'x64', 'arm'].freeze
+  WDS_PROCESSOR_NAMES = [nil, 'x86', 'ia64', 'amd64', 'arm'].freeze
+
   attr_accessor :id, :name, :description, :enabled, :file_name,
                 :architecture, :product_family, :product_name, :version,
                 :wds_server

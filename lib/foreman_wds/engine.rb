@@ -24,6 +24,7 @@ module ForemanWds
              parent: :infrastructure_menu
 
         register_facet ForemanWds::WdsFacet, :wds_facet
+        parameter_filter Host::Managed, :wds_facet
 
         provision_method 'wds', N_('WDS Server')
         template_labels 'wds_unattend' => N_('WDS Unattend file template')
@@ -52,6 +53,12 @@ module ForemanWds
         HostsController.send(:include, ForemanWds::HostsControllerExtensions)
       rescue StandardError => e
         Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
+      end
+    end
+
+    rake_tasks do
+      Rake::Task['db:seed'].enhance do
+        ForemanWds::Engine.load_seed
       end
     end
   end

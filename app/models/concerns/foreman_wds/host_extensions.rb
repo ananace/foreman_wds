@@ -51,6 +51,10 @@ module ForemanWds
       wds_facet || build_wds_facet
     end
 
+    def unattend_pass(suffix = '')
+      Base64.encode64(Encoding::Converter.new('UTF-8', 'UTF-16LE', undef: nil).convert(Base64.decode64(root_pass) + suffix)).delete!("\n")
+    end
+
     private
 
     def orchestrate_wds_client
@@ -59,6 +63,12 @@ module ForemanWds
       client = wds_server.client(self) || wds_server.create_client(self)
 
       Rails.logger.info client
+    rescue NotImplementedException
+      Rails.logger.info 'WDS orchestration is not implemented yet'
     end
   end
+end
+
+class ::Host::Managed::Jail < Safemode::Jail
+  allow :unattend_pass
 end
