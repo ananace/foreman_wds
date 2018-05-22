@@ -24,7 +24,7 @@ module ForemanWds
              parent: :infrastructure_menu
 
         register_facet ForemanWds::WdsFacet, :wds_facet
-        parameter_filter Host::Managed, :wds_facet
+        parameter_filter Host::Managed, wds_facet_attributes: %i[wds_server_id boot_image_name install_image_name]
 
         provision_method 'wds', N_('WDS Server')
         template_labels 'wds_unattend' => N_('WDS Unattend file template')

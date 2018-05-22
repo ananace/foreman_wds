@@ -2,10 +2,6 @@
 <% wds_facet = @host.wds_facet || @host.build_wds_facet -%>
 
 <div id="wds_provisioning" <%= display? !@host.wds_build? %>>
-  <%- if @host.new_record? || @host.type_changed? -%>
-      <%= checkbox_f f, :build, :help_inline => _("Enable this host for provisioning") %>
-  <%- end %>
-
   <span id="wds_server_select">
     <%= render 'wds_servers/server_select', item: wds_facet %>
   </span>
@@ -13,19 +9,4 @@
   <span id="wds_image_select">
     <%= render 'wds_servers/image_select', item: wds_facet %>
   </span>
-
-  <span id="boot_loader_select">
-    <%= select_f f, :pxe_loader, [['BIOS', 'PXELinux BIOS'], ['UEFI', 'PXELinux UEFI']], :last, :first,
-      { selected: blank_or_inherit_f(f, :pxe_loader) },
-      label: _('PXE loader'),
-      required: true
-    %>
-  </span>
-
-  <%= select_f f, :ptable_id, os_ptable, :id, :to_label,
-    {:include_blank => blank_or_inherit_f(f, :ptable), :selected => @host.ptable_id},
-    {:label => _("Partition Table"), :disabled => os_ptable.empty?, :required => true}
-  %>
-  <%= textarea_f f, :disk, :size => "col-md-8", :rows => "4",
-           :help_block => _("What ever text(or ERB template) you use in here, would be used as your OS disk layout options If you want to use the partition table option, delete all of the text from this field") %>
 </div>

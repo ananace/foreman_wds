@@ -24,23 +24,26 @@ os_selected = function(element){
   if ($('#os_select select').val() === '') {
     $('#wds_server_select select').val('');
     $('#wds_image_select select').val('');
-    $('#wds_server_select select').attr('disabled', true);
-    $('#wds_image_select select').attr('disabled', true);
+    $('#wds_server_select select').prop('disabled', true);
+    $('#wds_image_select select').prop('disabled', true);
   } else {
-    $('#wds_server_select select').attr('disabled', false);
+    $('#wds_server_select select').prop('disabled', false);
   }
 };
 
+
 function wds_provision_method_selected() {
-  $('div[id*=_provisioning]').hide();
+  build_provision_method_selected();
   $('#wds_provisioning').show();
-  $('#wds_image_select select').attr('disabled', true);
-  if ($('#provider').val() == 'Ovirt')
-    $('#host_compute_attributes_template').attr('disabled', false);
+
+  if ($('#wds_image_select select').val() === '')
+    $('#wds_image_select select').attr('disabled', true);
 }
 $(document).on('change', '#host_provision_method_wds', wds_provision_method_selected);
 
 $(function() {
   var caps = $('#capabilities').val() || $('#bare_metal_capabilities').val();
   update_capabilities(caps);
-})();
+
+  $('#wds_provisioning').detach().insertBefore('#media_select');
+});
