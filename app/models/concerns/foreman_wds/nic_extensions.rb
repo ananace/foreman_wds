@@ -10,7 +10,7 @@ module ForemanWds
     def boot_server
       return super if host.nil? || !host.wds? || host.wds_facet.nil?
 
-      host.wds_server.next_server_ip
+      host.wds_server.next_server_ip if host.build? # TODO: Support choosing local boot method
     end
 
     def dhcp_records
@@ -27,7 +27,9 @@ module ForemanWds
       build_stage = host.build? ? :pxe : :local
       build_type = host.pxe_loader =~ /UEFI/i ? :uefi : :bios
 
-      data[:filename] = WdsServer.bootfile_path(arch, build_type, build_stage)
+      if build_stage == :pxe # TODO: Support choosing local boot method
+        data[:filename] = WdsServer.bootfile_path(arch, build_type, build_stage)
+      end
 
       # Don't compare filenames if trying to check for collisions, WDS entries differ on file depending on build mode
       data.delete :filename if caller_locations.map(&:label).include?('dhcp_conflict_detected?')
