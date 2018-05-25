@@ -51,8 +51,12 @@ module ForemanWds
       wds_facet || build_wds_facet
     end
 
-    def unattend_pass(suffix = '')
-      Base64.encode64(Encoding::Converter.new('UTF-8', 'UTF-16LE', undef: nil).convert(Base64.decode64(root_pass) + suffix)).delete!("\n")
+    def unattend_pass(password, suffix = nil)
+      if suffix.nil?
+        suffix = password
+        password = Base64.decode64(root_pass)
+      end
+      Base64.encode64(Encoding::Converter.new('UTF-8', 'UTF-16LE', undef: nil).convert(password + suffix)).delete!("\n")
     end
 
     private
@@ -61,6 +65,7 @@ module ForemanWds
       raise NotImplementedError, 'Not implemented yet'
       return unless wds?
 
+      wds_server.ensure_unattend(self)
       client = wds_server.client(self) || wds_server.create_client(self)
 
       Rails.logger.info client

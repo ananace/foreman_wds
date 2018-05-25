@@ -91,6 +91,18 @@ class WdsServer < ApplicationRecord
     nil
   end
 
+  def ensure_unattend(host)
+    # TODO
+    # if group
+    #   New-WdsInstallImageGroup -Name ForemanUnattend
+    #   Export-WdsInstallImage -ImageGroup <Group>
+    #   Import-WdsInstallImage -ImageGroup ForemanUnattend
+    # else
+    #   Copy-WdsInstallImage -ImageGroup <Group> -NewFileName "install-#{clean_mac}.wim" -NewImageName "#{image_name} (#{host.name})"
+    # end
+    # Set-WdsInstallImage -ImageGroup <Group | 'ForemanUnattend'> -ImageName #{image_name} -NewDescription "Provisioned install image for #{host.name}" -UnattendFile <Generated file path> -OverwriteUnattend -DisplayOrder 9999
+  end
+
   def self.bootfile_path(architecture_name, loader = :bios, boot_type = :pxe)
     puts "bootfile_path(#{architecture_name.inspect}, #{loader.inspect}, #{boot_type.inspect})"
 

@@ -9,6 +9,23 @@ registration = {
   organization: 'Organization name',
   owner: 'Owner name'
 }
+
+if @host.info['parameters']['realm'] && @host.realm && @host.realm.realm_type == 'Active Directory'
+  realm = {
+    type: :machine,
+    domain: @host.realm.name.downcase,
+    password: @host.otp || '$HOST[OTP]'
+    # ou: 'OU=Servers,OU=Hardware,DC=example,DC=com'
+  }
+elsif @host.domain == 'example.com' # If you want to let the WDS install do the join
+  realm = {
+    type: :credentials,
+    domain: @host.domain,
+    username: 'AD_ADMIN',
+    password: 'AD_ADMIN_PW',
+    ou: 'OU=Servers,OU=Hardware,DC=example,DC=com'
+  }
+end
 -%>
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -23,9 +40,38 @@ registration = {
     </component>
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <%= indent(6) { @host.diskLayout } %>
+      <RunAsynchronous>
+        <RunAsynchronousCommand wcm:action="add">
+          <Path>\\exampleserver\tools\wget.exe <%= foreman_url('wds_localboot') --no-check-certificate %>
+          <Order>1</Order>
+          <Description>Switch PXE to local boot</Description>
+        </RunAsynchronousCommand>
+      </RunAsynchronous>
     </component>
   </settings>
   <settings pass="specialize">
+    <%- if realm -%>
+    <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" 
+language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <Identification>
+        <JoinDomain><%= realm[:domain] %></JoinDomain>
+        <%- if realm[:type] == :machine -%>
+        <MachinePassword><%= realm[:password] %></MachinePassword>
+        <UnsecureJoin>true</UnsecureJoin>
+        <%- else -%>
+        <Credentials>
+          <Domain><%= realm[:domain] %></Domain>
+          <Username><%= realm[:username] %></Username>
+          <Password><%= realm[:password] %></Password>
+        </Credentials>
+        <%- end -%>
+        <%- if realm[:ou] -%>
+        <MachineObjectOU><%= realm[:ou] %></MachineObjectOU>
+        <%- end -%>
+      </Identification>
+    </component>
+    <%- end -%>
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" 
 language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" 
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -38,7 +84,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <Interfaces>
         <%- iface = @host.primary_interface # @host.managed_interfaces.each.with_index do |iface, i| -%>
         <Interface wcm:action="add">
-          <Identifier><%= iface.identifier.empty? ? 'Ethernet0' : iface.identifier %></Identifier>
+          <Identifier><%= iface.identifier.empty? ? 'Ethernet' : iface.identifier %></Identifier>
           <UnicastIpAddresses>
           <%- if !iface.ip.empty? && iface.subnet -%>
             <IpAddress wcm:action="add" wcm:keyValue="1"><%= iface.ip %>/<%= iface.subnet.cidr %></IpAddress>
@@ -78,7 +124,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <IpAddress wcm:action="add" wcm:keyValue="1"><%= iface.subnet.dns_primary %></IpAddress>
             <IpAddress wcm:action="add" wcm:keyValue="2"><%= iface.subnet.dns_secondary %></IpAddress>
           </DNSServerSearchOrder>
-          <Identifier><%= iface.identifier.empty? ? 'Ethernet0' : iface.identifier %></Identifier>
+          <Identifier><%= iface.identifier.empty? ? 'Ethernet' : iface.identifier %></Identifier>
         </Interface>
       </Interfaces>
       <DNSDomain><%= @host.domain %></DNSDomain>
@@ -92,6 +138,56 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <PlainText>false</PlainText>
         </AdministratorPassword>
       </UserAccounts>
+      <AutoLogon>
+        <Password>
+          <Value><%= @host.unattend_pass 'AdministratorPassword' %></Value>
+          <PlainText>false</PlainText>
+        </Password>
+        <Domain><%= @host.shortname -%></Domain>
+        <LogonCount>1</LogonCount>
+        <Enabled>true</Enabled>
+        <Username>administrator</Username>
+      </AutoLogon>
+      <FirstLogonCommands>        
+        <SynchronousCommand wcm:action="add">
+          <CommandLine>powershell.exe -noprofile -executionpolicy bypass -command &quot;&amp;{Start-Service W32Time -ErrorAction SilentlyContinue; .\w32tm.exe /resync}&quot;</CommandLine>
+          <Description>Start Time Service</Description>
+          <Order>1</Order>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <CommandLine>powershell.exe -noprofile -executionpolicy bypass -command &quot;&amp;{iex ((New-Object System.Net.WebClient).DownloadString(&apos;https://chocolatey.org/install.ps1&apos;))}&quot;</CommandLine>
+          <Description>Install Chocolatey</Description>
+          <Order>10</Order>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <CommandLine>powershell.exe -noprofile -executionpolicy bypass -command &quot;&amp;{C:\ProgramData\chocolatey\choco.exe install puppet-agent -y}&quot;</CommandLine>
+          <Description>Install Puppet</Description>
+          <Order>11</Order>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+        <%- if host_param_true?('run-puppet-in-installer') -%>
+        <SynchronousCommand wcm:action="add">
+          <CommandLine>powershell.exe -noprofile -executionpolicy bypass -command &quot;&amp;{C:\Program Files\Puppet Labs\Puppet\bin\puppet agent --onetime --tags no_such_tag --server <%= @host.puppetmaster %> --no-daemonize}&quot;</CommandLine>
+          <Description>First Puppet run</Description>
+          <Order>11</Order>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+        <%- end -%>
+        <SynchronousCommand wcm:action="add">
+          <CommandLine>powershell.exe -noprofile -ExecutionPolicy Bypass -Command &quot;&amp;{invoke-webrequest -Uri <%= foreman_url("built") -%>}&quot;</CommandLine>
+          <Description>Report built</Description>
+          <Order>100</Order>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <CommandLine>powershell.exe -noprofile -executionpolicy bypass -command &quot;&amp;{Restart-Computer}&quot;</CommandLine>
+          <Description>Restart computer</Description>
+          <Order>1000</Order>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+      </FirstLogonCommands>
     </component>
   </settings>
 </unattend>
