@@ -1,4 +1,8 @@
 class WdsServer < ApplicationRecord
+  class Jail < Safemode::Jail
+    allow :name, :shortname
+  end
+
   include Encryptable
   extend FriendlyId
   friendly_id :name
@@ -81,6 +85,12 @@ class WdsServer < ApplicationRecord
   def timezone
     cache.cache(:timezone) do
       connection.run_wql('SELECT Bias FROM Win32_TimeZone')[:xml_fragment].first[:bias].to_i * 60
+    end
+  end
+
+  def shortname
+    cache.cache(:shortname) do
+      connection.run_wql('SELECT Name FROM Win32_ComputerSystem')[:xml_fragment].first[:name]
     end
   end
 

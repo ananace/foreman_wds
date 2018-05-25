@@ -1,5 +1,9 @@
 module ForemanWds
   class WdsFacet < ApplicationRecord
+    class Jail < Safemode::Jail
+      allow :boot_image_name, :install_image_file, :install_image_group, :install_image_name
+    end
+
     include Facets::Base
 
     belongs_to :wds_server,

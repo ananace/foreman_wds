@@ -9,15 +9,16 @@ registration = {
   organization: 'Organization name',
   owner: 'Owner name'
 }
+timezone = 'W. Europe Standard Time'
 
-if @host.info['parameters']['realm'] && @host.realm && @host.realm.realm_type == 'Active Directory'
+if @host.realm && @host.realm.realm_type == 'Active Directory'
   realm = {
     type: :machine,
     domain: @host.realm.name.downcase,
     password: @host.otp || '$HOST[OTP]'
     # ou: 'OU=Servers,OU=Hardware,DC=example,DC=com'
   }
-elsif @host.domain == 'example.com' # If you want to let the WDS install do the join
+elsif @host.domain.to_s == 'example.com' # If you want to let the WDS install do the join
   realm = {
     type: :credentials,
     domain: @host.domain,
@@ -39,10 +40,31 @@ end
       <UserLocale>en-US</UserLocale>
     </component>
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <WindowsDeploymentServices>
+        <Login>
+          <Credentials>
+            <Domain><%= @host.wds_server.shortname %></Domain>
+            <Username>wdsinstall</Username>
+            <Password>1ccg81hfh097hfqca08h</Password>
+          </Credentials>
+        </Login>
+        <ImageSelection>
+          <InstallImage>
+            <ImageGroup><%= @host.wds_facet.install_image_group %></ImageGroup>
+            <ImageName><%= @host.wds_facet.install_image_name %></ImageName>
+            <Filename><%= @host.wds_facet.install_image_file %></Filename>
+          </InstallImage>
+          <InstallTo>
+            <DiskID>0</DiskID>
+            <PartitionID><%= @host.pxe_loader.include? 'UEFI' ? '3' : '2' %></PartitionID>
+          </InstallTo>
+        </ImageSelection>
+      </WindowsDeploymentServices>
+      <EnableNetwork>true</EnableNetwork>
 <%= indent(6) { @host.diskLayout } %>
       <RunAsynchronous>
         <RunAsynchronousCommand wcm:action="add">
-          <Path>\\exampleserver\tools\wget.exe <%= foreman_url('wds_localboot') --no-check-certificate %>
+          <Path>\\exampleserver\tools\wget.exe <%= foreman_url('wds_localboot') %> --no-check-certificate
           <Order>1</Order>
           <Description>Switch PXE to local boot</Description>
         </RunAsynchronousCommand>
@@ -51,9 +73,7 @@ end
   </settings>
   <settings pass="specialize">
     <%- if realm -%>
-    <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" 
-language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <component name="Microsoft-Windows-UnattendedJoin" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <Identification>
         <JoinDomain><%= realm[:domain] %></JoinDomain>
         <%- if realm[:type] == :machine -%>
@@ -72,13 +92,11 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       </Identification>
     </component>
     <%- end -%>
-    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" 
-language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <ComputerName><%= @host.shortname %></ComputerName>
       <RegisteredOrganization><%= registration[:organization] %></RegisteredOrganization>
       <RegisteredOwner><%= registration[:owner] %></RegisteredOwner>
-      <TimeZone>W. Europe Standard Time</TimeZone>
+      <TimeZone><%= timezone %></TimeZone>
     </component>
     <component name="Microsoft-Windows-TCPIP" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <Interfaces>
@@ -121,8 +139,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <Interfaces>
         <Interface wcm:action="add">
           <DNSServerSearchOrder>
-            <IpAddress wcm:action="add" wcm:keyValue="1"><%= iface.subnet.dns_primary %></IpAddress>
-            <IpAddress wcm:action="add" wcm:keyValue="2"><%= iface.subnet.dns_secondary %></IpAddress>
+          <%- [iface.subnet.dns_primary, iface.subnet.dns_secondary].each.with_index do |dns_ip, i| -%> 
+            <IpAddress wcm:action="add" wcm:keyValue="<%= i %>"><%= dns_ip %></IpAddress>
+          <%- end -%>
           </DNSServerSearchOrder>
           <Identifier><%= iface.identifier.empty? ? 'Ethernet' : iface.identifier %></Identifier>
         </Interface>
@@ -132,6 +151,14 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   </settings>
   <settings pass="oobeSystem">
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideLocalAccountScreen>true</HideLocalAccountScreen>
+        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <ProtectYourPC>1</ProtectYourPC>
+      </OOBE>
       <UserAccounts>
         <AdministratorPassword>
           <Value><%= @host.unattend_pass 'AdministratorPassword' %></Value>

@@ -92,5 +92,5 @@ module ForemanWds
 end
 
 class ::Host::Managed::Jail < Safemode::Jail
-  allow :unattend_pass
+  allow :unattend_pass, :wds_facet, :wds_server
 end
