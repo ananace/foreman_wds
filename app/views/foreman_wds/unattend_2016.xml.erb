@@ -139,7 +139,7 @@ end
       <Interfaces>
         <Interface wcm:action="add">
           <DNSServerSearchOrder>
-          <%- [iface.subnet.dns_primary, iface.subnet.dns_secondary].each.with_index do |dns_ip, i| -%> 
+          <%- [iface.subnet.dns_primary, iface.subnet.dns_secondary].reject(&:empty?).each.with_index do |dns_ip, i| -%> 
             <IpAddress wcm:action="add" wcm:keyValue="<%= i %>"><%= dns_ip %></IpAddress>
           <%- end -%>
           </DNSServerSearchOrder>
