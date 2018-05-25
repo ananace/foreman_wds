@@ -14,9 +14,7 @@ class AddWdsServers < ActiveRecord::Migration[4.2]
       t.references :host, null: false, foreign_key: true, index: true, unique: true
       t.references :wds_server, foreign_key: true, index: true
 
-      t.string :boot_image_file, limit: 255
-      t.string :install_image_file, limit: 255
-      t.string :install_image_group, limit: 255
+      t.string :boot_image_name, limit: 255
       t.string :install_image_name, limit: 255
 
       t.timestamps null: false
