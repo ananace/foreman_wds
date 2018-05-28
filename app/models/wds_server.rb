@@ -102,15 +102,30 @@ class WdsServer < ApplicationRecord
   end
 
   def ensure_unattend(host)
-    # TODO
-    # if group
-    #   New-WdsInstallImageGroup -Name ForemanUnattend
-    #   Export-WdsInstallImage -ImageGroup <Group>
-    #   Import-WdsInstallImage -ImageGroup ForemanUnattend
-    # else
-    #   Copy-WdsInstallImage -ImageGroup <Group> -NewFileName "install-#{clean_mac}.wim" -NewImageName "#{image_name} (#{host.name})"
-    # end
-    # Set-WdsInstallImage -ImageGroup <Group | 'ForemanUnattend'> -ImageName #{image_name} -NewDescription "Provisioned install image for #{host.name}" -UnattendFile <Generated file path> -OverwriteUnattend -DisplayOrder 9999
+    return # TODO
+    connection.shell(:powershell) do |sh|
+      unattend_path = '' # TODO: find or specify remoteinstall path as a parameter
+      unattend_file = "#{unattend_path}\\#{host.mac.tr ':', '_'}.xml"
+      # TODO: render template, send as heredoc
+      # sh.run("$unattend_render = @'\n#{unattend_template}\n'@")
+      # sh.run("New-Item -Path '#{unattend_file}' -ItemType 'file' -Value $unattend_render")
+      if SETTINGS[:wds_unattend_group]
+        # New-WdsInstallImageGroup -Name #{SETTINGS[:wds_unattend_group]}
+        # Export-WdsInstallImage -ImageGroup <Group> ...
+        # Import-WdsInstallImage -ImageGroup #{SETTINGS[:wds_unattend_group]} -UnattendFile '#{unattend_file}' -OverwriteUnattend ...
+      else
+        source_image = host.wds_facet.install_image
+        target_image = ForemanWds::WdsInstallImage.new(
+          wds_server: self,
+          file_name: "install-#{host.mac.tr ':', '_'}.wim",
+          image_group: source_image.image_group,
+          image_name: "#{source_image.image_name} (for #{host.name})"
+        )
+
+        sh.run("Copy-WdsInstallImage -ImageGroup '#{source_image.image_group}' -FileName '#{source_image.file_name}' -ImageName '#{source_image.image_name}' -NewFileName '#{target_image.file_name}' -NewImageName '#{target_image.image_name}'")
+        sh.run("Set-WdsInstallImage -ImageGroup '#{target_image.image_group}' -FileName '#{target_image.file_name}' -ImageName '#{target_image.image_name}' -DisplayOrder 99999 -UnattendFile '#{unattend_file}' -OverwriteUnattend")
+      end
+    end
   end
 
   def self.bootfile_path(architecture_name, loader = :bios, boot_type = :pxe)
