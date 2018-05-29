@@ -21,6 +21,14 @@ module ForemanWds
       ensure_wds_facet.install_image
     end
 
+    def wds_install_image_file
+      ensure_wds_facet.install_image_file
+    end
+
+    def wds_install_image_group
+      ensure_wds_facet.install_image_group
+    end
+
     def wds_install_image_name
       ensure_wds_facet.install_image_name
     end
@@ -92,5 +100,5 @@ module ForemanWds
 end
 
 class ::Host::Managed::Jail < Safemode::Jail
-  allow :unattend_pass, :wds_facet, :wds_server
+  allow :unattend_pass, :wds_facet, :wds_server, :wds_install_image_file, :wds_install_image_group, :wds_install_image_name
 end

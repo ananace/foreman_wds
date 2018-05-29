@@ -50,9 +50,9 @@ end
         </Login>
         <ImageSelection>
           <InstallImage>
-            <ImageGroup><%= @host.wds_facet.install_image_group %></ImageGroup>
-            <ImageName><%= @host.wds_facet.install_image_name %></ImageName>
-            <Filename><%= @host.wds_facet.install_image_file %></Filename>
+            <ImageGroup><%= @host.wds_install_image_group %></ImageGroup>
+            <ImageName><%= @host.wds_install_image_name %></ImageName>
+            <Filename><%= @host.wds_install_image_file %></Filename>
           </InstallImage>
           <InstallTo>
             <DiskID>0</DiskID>
