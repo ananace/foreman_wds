@@ -102,7 +102,7 @@ class WdsServer < ApplicationRecord
   end
 
   def ensure_unattend(host)
-    return # TODO
+    raise NotImplementedException, 'TODO: Not implemented yet'
     connection.shell(:powershell) do |sh|
       unattend_path = '' # TODO: find or specify remoteinstall path as a parameter
       unattend_file = "#{unattend_path}\\#{host.mac.tr ':', '_'}.xml"
@@ -128,9 +128,26 @@ class WdsServer < ApplicationRecord
     end
   end
 
-  def self.bootfile_path(architecture_name, loader = :bios, boot_type = :pxe)
-    puts "bootfile_path(#{architecture_name.inspect}, #{loader.inspect}, #{boot_type.inspect})"
+  def delete_unattend(host)
+    raise NotImplementedException, 'TODO: Not implemented yet'
+    image = host.wds_facet.install_image
+    group = SETTINGS[:wds_unattend_group]
+    if group
+      image = image.dup.tap { |i| i.image_group = group }
+    else
+      image.file_name = "install-#{host.mac.tr ':', '_'}.wim"
+      image.image_name = "#{image.image_name} (for #{host.name})"
+    end
 
+    unattend_path = '' # TODO: find or specify remoteinstall path as a parameter
+    unattend_file = "#{unattend_path}\\#{host.mac.tr ':', '_'}.xml"
+    connection.shell(:powershell) do |sh|
+      sh.run("Remove-WdsInstallImage -ImageGroup '#{image.image_group}' -ImageName '#{image.image_name}' -FileName '#{image.file_name}'")
+      sh.run("Remove-Item -Path '#{unattend_file}'")
+    end
+  end
+
+  def self.bootfile_path(architecture_name, loader = :bios, boot_type = :pxe)
     file_name = nil
     if boot_type == :local
       file_name = 'bootmgfw.efi' if loader == :uefi

@@ -91,6 +91,7 @@ module ForemanWds
       return unless client
 
       wds_server.delete_client(client)
+      wds_server.delete_unattend(self)
       true
     rescue ScriptError, StandardError => ex
       Rails.logger.error "Failed to remove WDS client, #{ex}"
