@@ -21,7 +21,7 @@
       <!--<div class="col-md-2">&nbsp;</div><button class="btn btn-success col-md-2" type="button">Test connection</button>-->
       <%= link_to_function _("Test Connection"), "testConnection(this)", :class => "btn #{@wds_server.test_connection.is_a?(FalseClass) ? "btn-default" : "btn-success"}", :'data-url' => test_connection_wds_servers_path %>
     </div>
-    <%= render 'taxonomies/loc_org_tabs', :f => f, :obj => @wds_server %>
+    <%#= render 'taxonomies/loc_org_tabs', :f => f, :obj => @wds_server %>
   </div>
 
   <%= submit_or_cancel f %>
