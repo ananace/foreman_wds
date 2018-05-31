@@ -181,7 +181,7 @@ class WdsServer < ApplicationRecord
   def images(type, name = nil)
     raise ArgumentError, 'Type must be :boot or :install' unless %i[boot install].include? type
 
-    objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE ImageName=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym]
+    objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE Name=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym] rescue nil
     objects = nil if objects.empty?
     objects ||= [JSON.parse(connection.shell(:powershell) do |s|
       s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json -Compress")
