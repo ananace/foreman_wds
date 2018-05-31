@@ -50,8 +50,12 @@ module ForemanWds
       begin
         Host::Managed.send(:prepend, ForemanWds::HostExtensions)
         Nic::Managed.send(:prepend, ForemanWds::NicExtensions)
-        HostsController.send(:include, ForemanWds::HostsControllerExtensions)
-        UnattendedController.send(:include, ForemanWds::UnattendedControllerExtensions)
+        HostsController.send(:prepend, ForemanWds::HostsControllerExtensions)
+        UnattendedController.send(:prepend, ForemanWds::UnattendedControllerExtensions)
+
+        ComputeResource.providers.each do |_k, const|
+          Kernel.const_get(const).send(:prepend, ForemanWds::ComputeResourceExtensions)
+        end
       rescue StandardError => e
         Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
       end
