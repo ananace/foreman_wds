@@ -4,19 +4,11 @@ module ForemanWds
       return super unless kind == 'wds_localboot'
 
       iface = @host.provision_interface
-      iface.instance_variable_set :@host, @host
-      iface.instance_eval do
-        # Set PXE template parameters
-        @kernel = @host.operatingsystem.kernel(@host.arch)
-        @initrd = @host.operatingsystem.initrd(@host.arch)
-        @mediapath = @host.operatingsystem.mediumpath(@host) if @host.operatingsystem.respond_to?(:mediumpath)
 
-        # Xen requires additional boot files.
-        @xen = @host.operatingsystem.xen(host.arch) if @host.operatingsystem.respond_to?(:xen)
-      end
-      iface.send :default_pxe_render, @host.operatingsystem.pxe_loader_kind(@host)
-
-      @host.provision_method = 'build' # Deploy regular DHCP
+      # Deploy regular DHCP and local boot TFTP
+      @host.provision_method = 'build'
+      @host.build = false
+      iface.send :rebuild_tftp
       iface.send :rebuild_dhcp
 
       render inline: "Success. Local boot template was deployed successfully.\n"
