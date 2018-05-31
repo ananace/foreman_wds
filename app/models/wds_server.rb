@@ -158,7 +158,7 @@ class WdsServer < ApplicationRecord
     end
     raise ArgumentError, 'Invalid loader or boot type provided' if file_name.nil?
 
-    "boot\\#{architecture_name}\\#{file_name}"
+    "boot\\\\#{architecture_name}\\\\#{file_name}"
   end
 
   def self.wdsify_architecture(architecture)
