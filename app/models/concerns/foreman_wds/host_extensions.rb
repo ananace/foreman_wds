@@ -79,7 +79,6 @@ module ForemanWds
       raise NotImplementedError, 'Not implemented yet'
       return unless wds?
 
-      wds_server.ensure_unattend(self)
       client = wds_server.client(self) || wds_server.create_client(self)
 
       Rails.logger.info client
@@ -96,8 +95,7 @@ module ForemanWds
       client = wds_server.client(self)
       return unless client
 
-      wds_server.delete_client(client)
-      wds_server.delete_unattend(self)
+      wds_server.delete_client(self)
       true
     rescue ScriptError, StandardError => ex
       Rails.logger.error "Failed to remove WDS client, #{ex}"
