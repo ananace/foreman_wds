@@ -4,6 +4,12 @@ module ForemanWds
       base.class_eval do
         after_build :ensure_wds_client
         before_provision :remove_wds_client
+
+        has_one :wds_facet,
+                class_name: '::ForemanWds::WdsFacet',
+                foreign_key: :host_id,
+                inverse_of: :host,
+                dependent: :destroy
       end
     end
 
