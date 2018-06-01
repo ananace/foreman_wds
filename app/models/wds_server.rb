@@ -59,7 +59,9 @@ class WdsServer < ApplicationRecord
   end
 
   def client(host)
-    clients.find { |c| [host.mac, host.name].include? c[:device_id] }
+    clients.find do |c|
+      [host.mac.upcase.tr(':', '-'), host.name].include?(c[:device_id]) || [host.name, host.shortname].include?(c[:device_name])
+    end
   end
 
   def boot_images
