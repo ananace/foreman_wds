@@ -52,7 +52,7 @@ class WdsServer < ApplicationRecord
       end.stdout
       data = '[]' if data.empty?
 
-      [JSON.parse(data, symbolize_names: true)].flatten
+      underscore_result([JSON.parse(data)].flatten)
     end
 
     objects
@@ -203,12 +203,23 @@ class WdsServer < ApplicationRecord
 
     objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE Name=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym] rescue nil
     objects = nil if objects.empty?
-    objects ||= [JSON.parse(connection.shell(:powershell) do |s|
+    objects ||= underscore_result([JSON.parse(connection.shell(:powershell) do |s|
       s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json -Compress")
-    end.stdout, symbolize_names: true)].flatten
+    end.stdout)].flatten)
 
     objects.map do |obj|
       ForemanWds.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
+    end
+  end
+
+  def underscore_result(result)
+    case result
+    when Array
+      result.map { |v| underscore_result(v) }
+    when Hash
+      Hash[result.map { |k, v| [k.to_s.underscore.to_sym, underscore_result(v)] }]
+    else
+      result
     end
   end
 
