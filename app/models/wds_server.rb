@@ -44,7 +44,7 @@ class WdsServer < ApplicationRecord
   end
 
   def clients
-    objects = connection.run_wql('SELECT * FROM MSFT_WdsClient')[:msft_wdsclient]
+    objects = connection.run_wql('SELECT * FROM MSFT_WdsClient')[:msft_wdsclient] rescue nil
     objects = nil if objects.empty?
     objects ||= begin
       data = connection.shell(:powershell) do |s|
