@@ -7,6 +7,7 @@
 <ul class="nav nav-tabs" data-tabs="tabs">
   <li class="active"><a href="#primary" data-toggle="tab"><%= _("WDS Server") %></a></li>
   <li><a href="#images" data-toggle="tab"><%= _("Images") %></a></li>
+  <li><a href="#clients" data-toggle="tab"><%= _("Clients") %></a></li>
 </ul>
 
 <div class="tab-content">
@@ -37,6 +38,9 @@
     </table>
   </div>
   <div id="images" class="tab-pane" data-url="<%= wds_images_wds_server_path(@wds_server) %>#wds_images">
+    <%= spinner(_('Loading image information ...')) %>
+  </div>
+  <div id="clients" class="tab-pane" data-url="<%= wds_clients_wds_server_path(@wds_server) %>#wds_clients">
     <%= spinner(_('Loading image information ...')) %>
   </div>
 </div>

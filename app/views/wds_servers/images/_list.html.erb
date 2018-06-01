@@ -13,7 +13,7 @@
     </tr>
   </thead>
   <tbody>
-  <% @images.each do |image| %>
+  <%- @images.each do |image| -%>
     <tr>
       <td><%= image.name %></td>
       <td><%= image.image_group if image.respond_to? :image_group %></td>
@@ -31,6 +31,6 @@
       </td>
       <td><%= image.type_name %></td>
     </tr>
-  <% end %>
+  <%- end -%>
   </tbody>
 </table>

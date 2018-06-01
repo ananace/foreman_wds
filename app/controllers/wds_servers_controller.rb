@@ -60,10 +60,16 @@ class WdsServersController < ::ApplicationController
     render partial: 'form', locals: { wds_server: @wds_server }
   end
 
+  def wds_clients
+    @clients = @wds_server.clients
+
+    render partial: 'wds_servers/clients/list'
+  end
+
   def wds_images
     @images = @wds_server.boot_images + @wds_server.install_images
 
-    render partial: 'wds_images/list'
+    render partial: 'wds_servers/images/list'
   end
 
   private

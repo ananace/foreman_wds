@@ -1,4 +1,4 @@
-function wds_images_load(element){
+function wds_load(element){
   var url = $(element).attr('data-url');
   tfm.tools.showSpinner();
   $.ajax({
@@ -8,11 +8,12 @@ function wds_images_load(element){
       reloadOnAjaxComplete(element);
     },
     success: function(request) {
-      $('#images').html(request);
+      element.html(request);
     }
   });
 }
 
 $(function() {
-  wds_images_load($('#images'));
+  wds_load($('#images'));
+  wds_load($('#clients'));
 })();

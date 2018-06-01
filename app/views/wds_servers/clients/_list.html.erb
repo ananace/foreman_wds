@@ -1,0 +1,36 @@
+<% title _('WDS Clients') %>
+
+<table id="wds_clients" class="<%= table_css_classes %>" data-table='inline'>
+  <thead>
+    <tr>
+      <th><%= s_("Client|Name") %></th>
+      <th><%= s_("Client|Group") %></th>
+      <th><%= s_("Client|ID") %></th>
+      <th><%= s_("Client|Architecture") %></th>
+      <th><%= s_("Client|Boot Image") %></th>
+      <th><%= s_("Client|Unattend") %></th>
+    </tr>
+  </thead>
+  <tbody>
+  <%- @clients.each do |client| -%>
+<%-
+    host = begin
+      if client[:device_id] =~ /([0-9A-F]{2}-){5}[0-9A-F]{2}/
+        nic = Nic::Managed.find_by(mac: client[:device_id].downcase.tr('-', ':'))
+        nic && nic.host
+      else
+        Host::Managed.find_by(name: client[:device_name])
+      end
+    end
+-%>
+    <tr>
+      <td><%= host ? link_to_if_authorized(client[:device_name], hash_for_host_path(:id => host)) : client[:device_name] %></td>
+      <td><%= client[:group] %></td>
+      <td><%= client[:device_id] %></td>
+      <td><%= client[:architecture] %></td>
+      <td><%= client[:boot_image_path] %></td>
+      <td><%= client[:wds_client_unattend] %></td>
+    </tr>
+  <%- end -%>
+  </tbody>
+</table>

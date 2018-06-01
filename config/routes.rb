@@ -8,6 +8,7 @@ Rails.application.routes.draw do
         end
         member do
           post 'refresh_cache'
+          get 'wds_clients'
           get 'wds_images'
         end
       end
