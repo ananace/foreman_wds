@@ -19,11 +19,10 @@ If you don't want the lifecycle management features of Foreman, you can ignore t
 
 ## Installation
 
-See [Plugins install instructions](https://theforeman.org/plugins/) for information on how to install Foreman plugins.
+See the [Plugins install instructions, advanced installation from gems](https://theforeman.org/plugins/#2.3AdvancedInstallationfromGems) for information on how to install this plugins.
 
-## Usage
-
-TODO
+This plugin has JavaScript assets that require precompilation if installed into a packaged Foreman install.
+You will need to install the `foreman-assets` package and run `foreman-rake plugin:assets:precompile[foreman_wds]` after installing it from gem.
 
 ## Contributing
 
