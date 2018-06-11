@@ -79,7 +79,7 @@ class WdsServer < ApplicationRecord
     ensure_unattend(host)
 
     connection.shell(:powershell) do |sh|
-      # New-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}' -DeviceName '#{host.name}' -WdsClientUnattend '#{unattend_file(host)}' -BootImagePath 'boot\\#{wdsify_architecture(host.architecture)}\\images\\#{(host.wds_boot_image || boot_images.first).file_name}' -PxePromptPolicy 'NoPrompt'
+      sh.run("New-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}' -DeviceName '#{host.name}' -WdsClientUnattend '#{unattend_file(host)}' -BootImagePath 'boot\\#{wdsify_architecture(host.architecture)}\\images\\#{(host.wds_boot_image || boot_images.first).file_name}' -PxePromptPolicy 'NoPrompt'")
     end
   end
 
