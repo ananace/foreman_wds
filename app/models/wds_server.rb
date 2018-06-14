@@ -136,6 +136,11 @@ class WdsServer < ApplicationRecord
     ForemanWds::WdsImage::WDS_ARCH_NAMES[wds_arch]
   end
 
+  def self.wdsify_processor_architecture(architecture)
+    wds_arch = ForemanWds::WdsImage::WDS_IMAGE_ARCHES.find_index { |arch| arch =~ architecture.name }
+    ForemanWds::WdsImage::WDS_ARCH_NAMES[wds_arch]
+  end
+
   def test_connection
     connection.run_wql('SELECT * FROM Win32_UTCTime').key? :win32_utc_time
   rescue StandardError

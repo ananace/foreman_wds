@@ -65,6 +65,10 @@ module ForemanWds
       wds_facet || build_wds_facet
     end
 
+    def unattend_arch
+      WdsServer.wdsify_processor_architecture(architecture)
+    end
+
     def unattend_pass(password, suffix = nil)
       if suffix.nil?
         suffix = password
@@ -105,5 +109,5 @@ module ForemanWds
 end
 
 class ::Host::Managed::Jail < Safemode::Jail
-  allow :unattend_pass, :wds_facet, :wds_server, :wds_install_image_file, :wds_install_image_group, :wds_install_image_name
+  allow :unattend_arch, :unattend_pass, :wds_facet, :wds_server, :wds_install_image_file, :wds_install_image_group, :wds_install_image_name
 end
