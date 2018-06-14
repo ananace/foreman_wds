@@ -104,11 +104,10 @@ end
         <Interface wcm:action="add">
           <Identifier><%= iface.identifier.empty? ? 'Ethernet' : iface.identifier %></Identifier>
           <UnicastIpAddresses>
-          <%- if !iface.ip.empty? && iface.subnet -%>
-            <IpAddress wcm:action="add" wcm:keyValue="1"><%= iface.ip %>/<%= iface.subnet.cidr %></IpAddress>
-          <%- end -%>
-          <%- if !iface.ip6.empty? && iface.subnet6 -%>
-            <IpAddress wcm:action="add" wcm:keyValue="2"><%= iface.ip6 %>/<%= iface.subnet6.cidr %></IpAddress>
+          <%- { iface.ip => iface.subnet, iface.ip6 => iface.subnet6 }
+              .reject { |k, v| k.empty? || v.nil? }
+              .each.with_index do |(ip, subnet), i| -%>
+            <IpAddress wcm:action="add" wcm:keyValue="<%= i + 1 %>"><%= ip %>/<%= subnet.cidr %></IpAddress>
           <%- end -%>
           </UnicastIpAddresses>
           <Routes>
@@ -140,7 +139,7 @@ end
         <Interface wcm:action="add">
           <DNSServerSearchOrder>
           <%- [iface.subnet.dns_primary, iface.subnet.dns_secondary].reject(&:empty?).each.with_index do |dns_ip, i| -%> 
-            <IpAddress wcm:action="add" wcm:keyValue="<%= i %>"><%= dns_ip %></IpAddress>
+            <IpAddress wcm:action="add" wcm:keyValue="<%= i + 1 %>"><%= dns_ip %></IpAddress>
           <%- end -%>
           </DNSServerSearchOrder>
           <Identifier><%= iface.identifier.empty? ? 'Ethernet' : iface.identifier %></Identifier>
