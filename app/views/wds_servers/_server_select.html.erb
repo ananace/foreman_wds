@@ -8,5 +8,5 @@
       disabled: f.object.host.operatingsystem.nil? || f.object.host.operatingsystem.family != 'Windows',
       help_inline: :indicator,
       required: true,
-      onchange: 'wds_server_selected(this);', :'data-url' => method_path('wds_server_selected'), :'data-type' => controller_name.singularize } %>
+      onchange: 'wds_server_selected(this);', :'data-url' => hash_for_wds_server_selected_hosts_path, :'data-type' => controller_name.singularize } %>
 <% end %>
