@@ -14,5 +14,14 @@ module ForemanWds
 
       super(top_level_hash)
     end
+
+    def action_permission
+      case params[:action]
+      when 'wds_server_selected', 'wds_image_selected'
+        :edit
+      else
+        super
+      end
+    end
   end
 end

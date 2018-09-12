@@ -77,4 +77,15 @@ class WdsServersController < ::ApplicationController
   def find_server
     @wds_server = WdsServer.find(params[:id])
   end
+
+  def action_permission
+    case params[:action]
+    when 'wds_clients', 'wds_images'
+      :view
+    when 'test_connection', 'refresh_cache', 'delete_wds_client'
+      :edit
+    else
+      super
+    end
+  end
 end

@@ -17,6 +17,33 @@ module ForemanWds
       Foreman::Plugin.register :foreman_wds do
         requires_foreman '>= 1.16'
 
+        security_block :foreman_wds do
+          permission :view_wds_servers, {
+            wds_servers: %i[index show auto_complete_search wds_clients wds_images]
+          }, resource_type: 'WdsServer'
+          permission :create_wds_servers, {
+            wds_servers: %i[create new]
+          }, resource_type: 'WdsServer'
+          permission :edit_wds_servers, {
+            wds_servers: %i[edit update test_connection refresh_cache delete_wds_client]
+          }, resource_type: 'WdsServer'
+          permission :destroy_wds_servers, {
+            wds_servers: %i[destroy]
+          }, resource_type: 'WdsServer'
+
+          # permission :edit_hosts, {
+          #   hosts: %i[wds_server_selected wds_image_selected]
+          # }, resource_type: 'Host'
+        end
+
+        Foreman::AccessControl.permissions(:edit_hosts).actions.concat [
+          'hosts/wds_server_selected', 'hosts/wds_image_selected'
+        ]
+
+        role 'WDS Server Manager', %i[view_wds_servers create_wds_servers edit_wds_servers destroy_wds_servers]
+
+        add_all_permissions_to_default_roles
+
         # add menu entry
         menu :top_menu, :wds_servers,
              url_hash: { controller: :wds_servers, action: :index },
