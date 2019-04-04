@@ -15,8 +15,14 @@ Rails.application.routes.draw do
     end
   end
 
-  constraints(id: /[^\/]+/) do
-    resources :hosts do
+  constraints(id: %r{[^\/]+}) do
+    resources :hosts, only: [] do
+      collection do
+        post 'wds_server_selected'
+        post 'wds_image_selected'
+      end
+    end
+    resources :discovered_hosts, only: [] do
       collection do
         post 'wds_server_selected'
         post 'wds_image_selected'
