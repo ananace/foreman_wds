@@ -41,11 +41,13 @@ module ForemanWds
 
     def capabilities
       return super + [:wds] if compute_resource && (os.nil? || os.family == 'Windows')
+
       super
     end
 
     def bare_metal_capabilities
       return super + [:wds] if os.nil? || os.family == 'Windows'
+
       super
     end
 
@@ -55,6 +57,12 @@ module ForemanWds
 
     def wds_build?
       provision_method == 'wds'
+    end
+
+    def pxe_build?
+      return true if wds_build?
+
+      super
     end
 
     def wds?
