@@ -1,7 +1,7 @@
 module ForemanWds
   module UnattendedControllerExtensions
-    def render_template(kind)
-      return super(kind) unless kind == 'wds_localboot'
+    def host_template
+      return super unless params[:kind] == 'wds_localboot'
 
       begin
         iface = @host.provision_interface
