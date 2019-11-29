@@ -208,11 +208,25 @@ class WdsServer < ApplicationRecord
   def images(type, name = nil)
     raise ArgumentError, 'Type must be :boot or :install' unless %i[boot install].include? type
 
-    objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE Name=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym] rescue nil
-    objects = nil if objects.empty?
-    objects ||= underscore_result([JSON.parse(connection.shell(:powershell) do |s|
-      s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json -Compress")
-    end.stdout)].flatten)
+    begin
+      objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE Name=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym]
+      objects = nil if objects.empty?
+    rescue StandardError => e
+      ::Rails.logger.debug "WQL image query failed with #{e.class}: #{e}"
+    end
+
+    unless objects
+      begin
+        result = connection.shell(:powershell) do |s|
+          s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json -Compress")
+        end
+
+        objects = underscore_result([JSON.parse(result.stdout)].flatten)
+      rescue JSON::ParserError => e
+        ::Rails.logger.error "#{e.class}: #{e}\n#{result}"
+        raise e
+      end
+    end
 
     objects.map do |obj|
       ForemanWds.const_get("Wds#{type.to_s.capitalize}Image").new obj.merge(wds_server: self)
