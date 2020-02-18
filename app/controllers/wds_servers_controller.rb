@@ -72,6 +72,15 @@ class WdsServersController < ::ApplicationController
     render partial: 'wds_servers/images/list'
   end
 
+  def delete_wds_client
+    host = Host::Managed.find(params[:client])
+    # raise unless host
+    client = @wds_server.client(host)
+    # raise unless client
+
+    @wds_server.delete_client(host)
+  end
+
   private
 
   def find_server
