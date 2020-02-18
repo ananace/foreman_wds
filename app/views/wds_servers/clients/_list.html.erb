@@ -9,6 +9,7 @@
       <th><%= s_("Client|Architecture") %></th>
       <th><%= s_("Client|Boot Image") %></th>
       <th><%= s_("Client|Unattend") %></th>
+      <th><%= s_("Client|Actions") %></th>
     </tr>
   </thead>
   <tbody>
@@ -30,6 +31,12 @@
       <td><%= client[:architecture] %></td>
       <td><%= client[:boot_image_path] %></td>
       <td><%= client[:wds_client_unattend] %></td>
+      <td><%= host && action_buttons(
+        display_link_if_authorized(
+          _('Delete'),
+          hash_for_delete_wds_client_wds_server_path(id: @wds_server, client: host)
+        )
+      ) %></td>
     </tr>
   <%- end -%>
   </tbody>

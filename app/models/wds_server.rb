@@ -204,7 +204,6 @@ class WdsServer < ApplicationRecord
     end.errcode.zero?
   end
 
-
   def images(type, name = nil)
     raise ArgumentError, 'Type must be :boot or :install' unless %i[boot install].include? type
 
