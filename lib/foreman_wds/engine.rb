@@ -36,7 +36,7 @@ module ForemanWds
           # }, resource_type: 'Host'
         end
 
-        Foreman::AccessControl.permissions(:edit_hosts).actions.concat [
+        Foreman::AccessControl.permission(:edit_hosts).actions.concat [
           'hosts/wds_server_selected', 'hosts/wds_image_selected'
         ]
 
