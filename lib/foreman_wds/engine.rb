@@ -40,7 +40,9 @@ module ForemanWds
           'hosts/wds_server_selected', 'hosts/wds_image_selected'
         ]
 
-        role 'WDS Server Manager', %i[view_wds_servers create_wds_servers edit_wds_servers destroy_wds_servers]
+        role 'WDS Server Manager',
+             %i[view_wds_servers create_wds_servers edit_wds_servers destroy_wds_servers],
+             'Role granting permissions full management permissions for WDS servers.'
 
         add_all_permissions_to_default_roles
 
