@@ -40,23 +40,25 @@ module ForemanWds
     end
 
     def capabilities
+      return [:wds] if wds_build?
       return super + [:wds] if compute_resource && (os.nil? || os.family == 'Windows')
 
       super
     end
 
     def bare_metal_capabilities
+      return [:wds] if wds_build?
       return super + [:wds] if os.nil? || os.family == 'Windows'
 
       super
     end
 
     def can_be_built?
-      super || (wds? && !build?)
+      super || (managed? && SETTINGS[:unattended] && wds? && !build?)
     end
 
     def wds_build?
-      provision_method == 'wds'
+      self[:provision_method] == 'wds'
     end
 
     def pxe_build?
@@ -117,5 +119,5 @@ module ForemanWds
 end
 
 class ::Host::Managed::Jail < Safemode::Jail
-  allow :unattend_arch, :unattend_pass, :wds_facet, :wds_server, :wds_install_image_file, :wds_install_image_group, :wds_install_image_name
+  allow :unattend_arch, :unattend_pass, :wds_build?, :wds_facet, :wds_server, :wds_install_image_file, :wds_install_image_group, :wds_install_image_name
 end

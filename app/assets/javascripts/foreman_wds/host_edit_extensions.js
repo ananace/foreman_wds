@@ -31,20 +31,30 @@ os_selected = function(element){
   }
 };
 
+var old_onHostEditLoad = onHostEditLoad;
+onHostEditLoad = function() {
+  old_onHostEditLoad();
+
+  $('#wds_provisioning').detach().insertBefore('#media_select');
+};
+
 
 function wds_provision_method_selected() {
-  build_provision_method_selected();
+  $('div[id*=_provisioning]').hide();
+  $('#network_provisioning').show();
   $('#wds_provisioning').show();
 
-  if ($('#wds_image_select select').val() === '')
+  if ($('#wds_image_select select').val() === '') {
     $('#wds_image_select select').attr('disabled', true);
+  }
 }
 $(document).on('change', '#host_provision_method_wds', wds_provision_method_selected);
 
 $(function() {
+  if($('#host_provision_method_wds').is(':checked')) {
+    wds_provision_method_selected();
+  }
+
   var caps = $('#capabilities').val() || $('#bare_metal_capabilities').val();
   update_capabilities(caps);
-  $('#provisioning_method input[checked]').click();
-
-  $('#wds_provisioning').detach().insertBefore('#media_select');
 });
