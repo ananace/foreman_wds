@@ -54,7 +54,4 @@ $(function() {
   if($('#host_provision_method_wds').is(':checked')) {
     wds_provision_method_selected();
   }
-
-  var caps = $('#capabilities').val() || $('#bare_metal_capabilities').val();
-  update_capabilities(caps);
 });
