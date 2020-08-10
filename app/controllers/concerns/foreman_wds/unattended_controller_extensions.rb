@@ -1,7 +1,7 @@
 module ForemanWds
   module UnattendedControllerExtensions
     def host_template
-      return wds_render_csr if params[:kind] == 'csr_attributes.yaml'
+      return wds_render_csr if params[:kind] == 'csr_attributes'
       return wds_deploy_localboot if params[:kind] == 'wds_localboot'
       super
     end
