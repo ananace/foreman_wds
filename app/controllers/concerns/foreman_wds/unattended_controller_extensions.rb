@@ -6,25 +6,21 @@ module ForemanWds
       super
     end
 
-    def load_template_vars
-      super unless params[:kind] == 'wds_localboot'
-    end
-
     private
 
     def wds_render_csr
-      return render(:plain => 'Host not in build mode') unless @host and @host.build?
+      return unless verify_found_host
+      return head(:method_not_allowed) unless allowed_to_install?
 
       template = ProvisioningTemplate.find_by_name('csr_attributes.yaml')
+      return safe_render(template) if template
 
-      content = @host.render_template template: template
-      raise Foreman::Exception.new(N_("Template '%s' didn't render correctly"), template.name) unless content
-
-      render plain: content
+      return head(:not_found)
     end
 
     def wds_deploy_localboot
-      return render(:plain => 'Host not in build mode') unless @host and @host.build?
+      return unless verify_found_host
+      return head(:method_not_allowed) unless allowed_to_install?
 
       iface = @host.provision_interface
 
