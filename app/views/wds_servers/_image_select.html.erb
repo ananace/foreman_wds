@@ -3,7 +3,7 @@
     host = @host || f.object.host
     server = host.public_send(:wds_server) rescue nil
     images = server.all_images rescue []
-    images = images.select { |img| img.matches_architecture? host.architecture } if host.architecture
+    images = images.select { |img| img.matches_architecture?(host.architecture) && img.enabled } if host.architecture
     boot_images = images.select { |img| img.is_a?(ForemanWds::WdsBootImage) }
     install_images = images.select { |img| img.is_a?(ForemanWds::WdsInstallImage) }
     install_images = install_images.select { |img| img.version == "#{host.operatingsystem.major}.#{host.operatingsystem.minor}" } if host.operatingsystem
