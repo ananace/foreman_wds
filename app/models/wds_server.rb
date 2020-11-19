@@ -111,9 +111,9 @@ class WdsServer < ApplicationRecord
   end
 
   def next_server_ip
-    IPSocket.getaddress URI(url).host
-  rescue SocketError
-    ::Rails.logger.info "Failed to look up IP of WDS server #{name}"
+    Resolv.getaddresses(URI(url).host).select { |str| IPAddr.new(str).ipv4? }.first
+  rescue Resolv::ResolvError => e
+    ::Rails.logger.info "Failed to look up IP of WDS server #{name}. #{e.class}: #{e}"
     nil
   end
 
