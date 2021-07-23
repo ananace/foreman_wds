@@ -3,6 +3,7 @@ module ForemanWds
     def self.prepended(base)
       base.class_eval do
         after_build :ensure_wds_client
+        after_build :ensure_wds_boot
         before_provision :remove_wds_client
 
         has_one :wds_facet,
@@ -88,6 +89,15 @@ module ForemanWds
     end
 
     private
+
+    def ensure_wds_boot
+      return unless wds?
+
+      parameters.where(name: 'wds-specifictemplate').each(&:destroy)
+      Rails.logger.info 'Ensuring WDS boot'
+    rescue StandardError => ex
+      Rails.logger.error "Failed to ensure WDS boot, #{ex}"
+    end
 
     def ensure_wds_client
       raise NotImplementedError, 'Not implemented yet'

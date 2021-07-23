@@ -30,6 +30,11 @@ module ForemanWds
       iface.send :rebuild_tftp
       iface.send :rebuild_dhcp
 
+      @host.parameters.where(name: 'wds-specifictemplate').first_or_initialize.tap do |p|
+        p.value = 'local-boot'
+        p.save
+      end
+
       render inline: "Success. Local boot template was deployed successfully.\n"
     rescue StandardError => e
       message = format('Failed to set local boot template: %{error}', error: e)
