@@ -110,8 +110,12 @@ class WdsServer < ApplicationRecord
     end
   end
 
+  def next_server_name
+    URI(url).host
+  end
+
   def next_server_ip
-    res = Resolv::DNS.open { |dns| dns.getaddresses(URI(url).host) }.select { |addr| addr.is_a? Resolv::IPv4 }.first
+    res = Resolv::DNS.open { |dns| dns.getaddresses(next_server_name) }.select { |addr| addr.is_a? Resolv::IPv4 }.first
     return res.to_s if res
 
     IPSocket.getaddress URI(url).host

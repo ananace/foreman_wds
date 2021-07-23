@@ -10,7 +10,10 @@ module ForemanWds
     def boot_server
       return super if host.nil? || !host.wds? || host.wds_facet.nil?
 
-      return host.wds_server.next_server_ip if host.build? # TODO: Support choosing local boot method
+      if host.build? # TODO: Support choosing local boot method
+        return host.wds_server.next_server_ip unless subnet.dhcp.has_capability?(:DHCP, :dhcp_filename_hostname)
+        return host.wds_server.next_server_name
+      end
 
       super
     end
