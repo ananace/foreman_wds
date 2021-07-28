@@ -183,21 +183,36 @@ class WdsServer < ApplicationRecord
   end
 
   def ensure_unattend(host)
+    iface = host&.provision_interface
+    raise 'No provisioning interface available' unless iface
     raise NotImplementedException, 'TODO: Not implemented yet'
+
+    # TODO: render template, send as heredoc
+    template = host.operatingsystem.provisioning_templates.find { |t| t.template_kind.name == 'wds_unattend' }
+    unless template
+      logger.warn 'No WDS Unattend template specified, falling back to provision template'
+      template ||= host.operatingsystem.provisioning_templates.find { |t| t.template_kind.name == 'provision' }
+    end
+    raise 'No provisioning template available' unless template
+
+    template_data = host.render_template template: template
+
     connection.shell(:powershell) do |sh|
+      file_path = unattend_file(host)
+
+      sh.run("$unattend_render = @'\n#{template_data}\n'@")
+      sh.run("New-Item -Path '#{file_path}' -ItemType 'file' -Value $unattend_render")
+
+      source_image = host.wds_facet.install_image
       target_image = target_image_for(host)
-      # TODO: render template, send as heredoc
-      # sh.run("$unattend_render = @'\n#{unattend_template}\n'@")
-      # sh.run("New-Item -Path '#{unattend_file(host)}' -ItemType 'file' -Value $unattend_render")
       if SETTINGS[:wds_unattend_group]
+        raise NotImplementedException, 'TODO: Not implemented yet'
         # New-WdsInstallImageGroup -Name #{SETTINGS[:wds_unattend_group]}
         # Export-WdsInstallImage -ImageGroup <Group> ...
-        # Import-WdsInstallImage -ImageGroup #{SETTINGS[:wds_unattend_group]} -UnattendFile '#{unattend_file(host)}' -OverwriteUnattend ...
+        # Import-WdsInstallImage -ImageGroup #{SETTINGS[:wds_unattend_group]} -UnattendFile '#{file_path}' -OverwriteUnattend ...
       else
-        source_image = host.wds_facet.install_image
-
         sh.run("Copy-WdsInstallImage -ImageGroup '#{source_image.image_group}' -FileName '#{source_image.file_name}' -ImageName '#{source_image.image_name}' -NewFileName '#{target_image.file_name}' -NewImageName '#{target_image.image_name}'")
-        sh.run("Set-WdsInstallImage -ImageGroup '#{target_image.image_group}' -FileName '#{target_image.file_name}' -ImageName '#{target_image.image_name}' -DisplayOrder 99999 -UnattendFile '#{unattend_file(host)}' -OverwriteUnattend")
+        sh.run("Set-WdsInstallImage -ImageGroup '#{target_image.image_group}' -FileName '#{target_image.file_name}' -ImageName '#{target_image.image_name}' -DisplayOrder 99999 -UnattendFile '#{file_path}' -OverwriteUnattend")
       end
     end
   end
@@ -209,6 +224,14 @@ class WdsServer < ApplicationRecord
       sh.run("Remove-WdsInstallImage -ImageGroup '#{image.image_group}' -ImageName '#{image.image_name}' -FileName '#{image.file_name}'")
       sh.run("Remove-Item -Path '#{unattend_file(host)}'")
     end.errcode.zero?
+  end
+
+  def ensure_client(host)
+    raise NotImplementedException, 'TODO: Not implemented yet'
+  end
+
+  def delete_client(host)
+    raise NotImplementedException, 'TODO: Not implemented yet'
   end
 
   def images(type, name = nil)
