@@ -13,9 +13,7 @@ module ForemanWds
       return head(:method_not_allowed) unless allowed_to_install?
 
       template = ProvisioningTemplate.find_by_name('csr_attributes.yaml')
-      return safe_render(template) if template
-
-      return head(:not_found)
+      safe_render(template)
     end
 
     def wds_deploy_localboot
