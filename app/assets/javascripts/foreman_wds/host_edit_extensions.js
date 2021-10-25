@@ -27,6 +27,10 @@ os_selected = function(element){
     $('#wds_server_select select').prop('disabled', true);
     $('#wds_image_select select').prop('disabled', true);
   } else {
+    if ($('#wds_server_select select').val() !== '') {
+        wds_server_selected($('#wds_server_select select'));
+    }
+
     $('#wds_server_select select').prop('disabled', false);
   }
 };
