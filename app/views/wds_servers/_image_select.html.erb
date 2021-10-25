@@ -6,7 +6,15 @@
     images = images.select { |img| img.matches_architecture?(host.architecture) && img.enabled } if host.architecture
     boot_images = images.select { |img| img.is_a?(ForemanWds::WdsBootImage) }
     install_images = images.select { |img| img.is_a?(ForemanWds::WdsInstallImage) }
-    install_images = install_images.select { |img| img.version == "#{host.operatingsystem.major}.#{host.operatingsystem.minor}" } if host.operatingsystem
+
+    if host.operatingsystem
+      host_is_client = host.operatingsystem.name.end_with?('_client')
+      client_sort_order = host_is_client ? 0 : 1
+      server_sort_order = host_is_client ? 1 : 0
+
+      install_images = install_images.select { |img| img.version == "#{host.operatingsystem.major}.#{host.operatingsystem.minor}" }
+                                     .sort_by { |img| "#{img.name =~ /server/i ? server_sort_order : client_sort_order}#{img.name}" }
+    end
   -%>
   <%= select_f f, :install_image_name, install_images, :name, :name,
     { selected: item.install_image_name },
