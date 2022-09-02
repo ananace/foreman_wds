@@ -8,7 +8,7 @@ module ForemanWds
     end
 
     def boot_server
-      return super if host.nil? || !host.wds? || host.wds_facet.nil?
+      return super if host.nil? || !host.wds? || host.wds_facet.nil? || host.pxe_loader.nil? || host.pxe_loader.downcase == 'none'
 
       if host.build? # TODO: Support choosing local boot method
         return host.wds_server.next_server_ip unless subnet.dhcp.has_capability?(:DHCP, :dhcp_filename_hostname)
@@ -26,7 +26,7 @@ module ForemanWds
 
     def dhcp_attrs(record_mac)
       data = super(record_mac)
-      return data if host.nil? || !host.wds?
+      return data if host.nil? || !host.wds? || host.pxe_loader.nil? || host.pxe_loader.downcase == 'none'
 
       arch = WdsServer.wdsify_architecture(host.architecture)
       build_stage = host.build? ? :pxe : :local
