@@ -100,9 +100,9 @@ module ForemanWds
     end
 
     def ensure_wds_client
-      raise NotImplementedError, 'Not implemented yet'
       return unless wds?
 
+      raise NotImplementedError, 'Not implemented yet'
       client = wds_server.ensure_client(self)
 
       Rails.logger.info client
@@ -113,9 +113,9 @@ module ForemanWds
     end
 
     def remove_wds_client
-      raise NotImplementedError, 'Not implemented yet'
       return unless wds?
 
+      raise NotImplementedError, 'Not implemented yet'
       wds_server.delete_client(self)
       true
     rescue ScriptError, StandardError => ex
