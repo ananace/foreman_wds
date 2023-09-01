@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 module ForemanWds
   module UnattendedControllerExtensions
     def host_template
       return wds_render_csr if params[:kind] == 'csr_attributes'
       return wds_deploy_localboot if params[:kind] == 'wds_localboot'
+
       super
     end
 
@@ -35,8 +38,9 @@ module ForemanWds
 
       render inline: "Success. Local boot template was deployed successfully.\n"
     rescue StandardError => e
-      message = format('Failed to set local boot template: %{error}', error: e)
+      message = format('Failed to set local boot template: %<error>s', error: e)
       logger.error message
+
       render text: message, status: :error, content_type: 'text/plain'
     end
   end

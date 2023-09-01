@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForemanWds::WdsBootImage < ForemanWds::WdsImage
   def initialize(json = {})
     super json
@@ -5,6 +7,7 @@ class ForemanWds::WdsBootImage < ForemanWds::WdsImage
 
   def reload
     return false if wds_server.nil?
+
     @json = wds_server.boot_image(name)
     load!
   end

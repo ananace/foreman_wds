@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ForemanWds
   class Engine < ::Rails::Engine
     engine_name 'foreman_wds'
@@ -36,9 +38,9 @@ module ForemanWds
           # }, resource_type: 'Host'
         end
 
-        Foreman::AccessControl.permission(:edit_hosts).actions.concat [
+        Foreman::AccessControl.permission(:edit_hosts).actions.push(
           'hosts/wds_server_selected', 'hosts/wds_image_selected'
-        ]
+        )
 
         role 'WDS Server Manager',
              %i[view_wds_servers create_wds_servers edit_wds_servers destroy_wds_servers],
@@ -76,18 +78,16 @@ module ForemanWds
     end
 
     config.to_prepare do
-      begin
-        Host::Managed.send(:prepend, ForemanWds::HostExtensions)
-        Nic::Managed.send(:prepend, ForemanWds::NicExtensions)
-        HostsController.send(:prepend, ForemanWds::HostsControllerExtensions)
-        UnattendedController.send(:prepend, ForemanWds::UnattendedControllerExtensions)
+      Host::Managed.prepend ForemanWds::HostExtensions
+      Nic::Managed.prepend ForemanWds::NicExtensions
+      HostsController.include ForemanWds::HostsControllerExtensions
+      UnattendedController.prepend ForemanWds::UnattendedControllerExtensions
 
-        ComputeResource.providers.each do |_k, const|
-          Kernel.const_get(const).send(:prepend, ForemanWds::ComputeResourceExtensions)
-        end
-      rescue StandardError => e
-        Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
+      ComputeResource.providers.each do |_k, const|
+        Kernel.const_get(const).send(:prepend, ForemanWds::ComputeResourceExtensions)
       end
+    rescue StandardError => e
+      Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
     end
 
     rake_tasks do

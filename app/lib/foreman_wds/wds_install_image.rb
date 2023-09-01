@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ForemanWds::WdsInstallImage < ForemanWds::WdsImage
   attr_accessor :compression, :dependent_files, :format, :image_group,
                 :partition_style, :security, :staged, :unattend_file_present
@@ -8,6 +10,7 @@ class ForemanWds::WdsInstallImage < ForemanWds::WdsImage
 
   def reload
     return false if wds_server.nil?
+
     @json = wds_server.install_image(name)
     load!
   end

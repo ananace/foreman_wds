@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  post 'wds_server_selected_discovered_hosts' => 'hosts#wds_server_selected'
+
   scope '/foreman_wds' do
     constraints(id: %r{[^\/]+}) do
       resources :wds_servers do

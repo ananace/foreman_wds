@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WdsImageCache
   attr_accessor :wds_server, :cache_duration
 
@@ -46,6 +48,7 @@ class WdsImageCache
 
   def get_uncached_value(&block)
     return unless block_given?
+
     wds_server.instance_eval(&block)
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ForemanWds
   class WdsFacet < ApplicationRecord
     class Jail < Safemode::Jail
@@ -13,11 +15,11 @@ module ForemanWds
     validates_lengths_from_database
 
     validates :host, presence: true, allow_blank: false
-
     validates :install_image_name, presence: true, allow_blank: false
 
     def boot_image
       return nil unless wds_server
+
       @boot_image ||= if boot_image_name
                         wds_server.boot_image(boot_image_name)
                       else
@@ -27,21 +29,25 @@ module ForemanWds
 
     def boot_image_file
       return nil unless boot_image
+
       @boot_image_file ||= boot_image.file_name
     end
 
     def install_image
       return nil unless wds_server
+
       @install_image ||= wds_server.install_image(install_image_name)
     end
 
     def install_image_file
       return nil unless install_image
+
       @install_image_file ||= install_image.file_name
     end
 
     def install_image_group
       return nil unless install_image
+
       @install_image_group ||= install_image.image_group
     end
   end

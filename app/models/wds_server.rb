@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WdsServer < ApplicationRecord
   class Jail < Safemode::Jail
     allow :name, :shortname
@@ -44,8 +46,8 @@ class WdsServer < ApplicationRecord
   end
 
   def clients
-    objects = connection.run_wql('SELECT * FROM MSFT_WdsClient')[:msft_wdsclient] rescue nil
-    objects = nil if objects.empty?
+    objects = run_wql('SELECT * FROM MSFT_WdsClient', on_error: {})[:msft_wdsclient]
+    objects = nil if objects&.empty?
     objects ||= begin
       data = connection.shell(:powershell) do |s|
         s.run('Get-WdsClient | ConvertTo-Json -Compress')
@@ -66,14 +68,14 @@ class WdsServer < ApplicationRecord
 
   def boot_images
     cache.cache(:boot_images) do
-      images(:boot)
-    end.each { |i| i.wds_server = self }
+      images(:boot).each { |i| i.wds_server = self }
+    end
   end
 
   def install_images
     cache.cache(:install_images) do
-      images(:install)
-    end.each { |i| i.wds_server = self }
+      images(:install).each { |i| i.wds_server = self }
+    end
   end
 
   def create_client(host)
@@ -100,13 +102,13 @@ class WdsServer < ApplicationRecord
 
   def timezone
     cache.cache(:timezone) do
-      connection.run_wql('SELECT Bias FROM Win32_TimeZone')[:xml_fragment].first[:bias].to_i * 60
+      run_wql('SELECT Bias FROM Win32_TimeZone')[:xml_fragment].first[:bias].to_i * 60
     end
   end
 
   def shortname
     cache.cache(:shortname) do
-      connection.run_wql('SELECT Name FROM Win32_ComputerSystem')[:xml_fragment].first[:name]
+      run_wql('SELECT Name FROM Win32_ComputerSystem')[:xml_fragment].first[:name]
     end
   end
 
@@ -149,9 +151,7 @@ class WdsServer < ApplicationRecord
   end
 
   def test_connection
-    connection.run_wql('SELECT * FROM Win32_UTCTime').key? :win32_utc_time
-  rescue StandardError
-    false
+    run_wql('SELECT * FROM Win32_UTCTime', on_error: {}).key? :win32_utc_time
   end
 
   def refresh_cache
@@ -185,6 +185,7 @@ class WdsServer < ApplicationRecord
   def ensure_unattend(host)
     iface = host&.provision_interface
     raise 'No provisioning interface available' unless iface
+
     raise NotImplementedException, 'TODO: Not implemented yet'
 
     # TODO: render template, send as heredoc
@@ -226,23 +227,19 @@ class WdsServer < ApplicationRecord
     end.errcode.zero?
   end
 
-  def ensure_client(host)
+  def ensure_client(_host)
     raise NotImplementedException, 'TODO: Not implemented yet'
   end
 
-  def delete_client(host)
+  def delete_client(_host)
     raise NotImplementedException, 'TODO: Not implemented yet'
   end
 
   def images(type, name = nil)
     raise ArgumentError, 'Type must be :boot or :install' unless %i[boot install].include? type
 
-    begin
-      objects = connection.run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE Name=\"#{name}\"" if name}")["msft_wds#{type}image".to_sym]
-      objects = nil if objects.empty?
-    rescue StandardError => e
-      ::Rails.logger.debug "WQL image query failed with #{e.class}: #{e}"
-    end
+    objects = run_wql("SELECT * FROM MSFT_Wds#{type.to_s.capitalize}Image#{" WHERE Name=\"#{name}\"" if name}", on_error: {})["msft_wds#{type}image".to_sym]
+    objects = nil if objects.empty?
 
     unless objects
       begin
@@ -267,10 +264,18 @@ class WdsServer < ApplicationRecord
     when Array
       result.map { |v| underscore_result(v) }
     when Hash
-      Hash[result.map { |k, v| [k.to_s.underscore.to_sym, underscore_result(v)] }]
+      result.to_h { |k, v| [k.to_s.underscore.to_sym, underscore_result(v)] }
     else
       result
     end
+  end
+
+  def run_wql(wql, on_error: :raise)
+    connection.run_wql(wql)
+  rescue StandardError
+    raise if on_error == :raise
+
+    on_error
   end
 
   def cache

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module ForemanWds
   module NicExtensions
     def dhcp_update_required?
       return super if host.nil? || !host.wds? || host.wds_facet.nil?
 
       # DHCP entry for WDS depends on build mode
-      return true if host.build_changed?
+      true if host.build_changed?
     end
 
     def boot_server
@@ -12,6 +14,7 @@ module ForemanWds
 
       if host.build? # TODO: Support choosing local boot method
         return host.wds_server.next_server_ip unless subnet.dhcp.has_capability?(:DHCP, :dhcp_filename_hostname)
+
         return host.wds_server.next_server_name
       end
 
@@ -19,7 +22,8 @@ module ForemanWds
     end
 
     def dhcp_records
-      # Always recalculate dhcp records for WDS hosts, to allow different filename for the deleting and setting of a DHCP rebuild
+      # Always recalculate dhcp records for WDS hosts, to allow different filename
+      # for the deleting and setting of a DHCP rebuild
       @dhcp_records = nil if !host.nil? && host.wds?
       super
     end
