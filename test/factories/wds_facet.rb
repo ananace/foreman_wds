@@ -3,6 +3,7 @@
 FactoryBot.define do
   factory :wds_facet, class: 'ForemanWds::WdsFacet' do
     host
-    wds_server
+
+    install_image_name { 'install.wim' }
   end
 end
