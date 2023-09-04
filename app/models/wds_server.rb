@@ -49,12 +49,9 @@ class WdsServer < ApplicationRecord
     objects = run_wql('SELECT * FROM MSFT_WdsClient', on_error: {})[:msft_wdsclient]
     objects = nil if objects&.empty?
     objects ||= begin
-      data = connection.shell(:powershell) do |s|
-        s.run('Get-WdsClient | ConvertTo-Json -Compress')
-      end.stdout
-      data = '[]' if data.empty?
-
-      underscore_result([JSON.parse(data)].flatten)
+      clients = run_pwsh('Get-WdsClient').stdout
+      clients = '[]' if clients.empty?
+      underscore_result([JSON.parse(clients)].flatten)
     end
 
     objects
@@ -82,18 +79,14 @@ class WdsServer < ApplicationRecord
     raise NotImplementedError, 'Not finished yet'
     ensure_unattend(host)
 
-    connection.shell(:powershell) do |sh|
-      sh.run("New-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}' -DeviceName '#{host.name}' -WdsClientUnattend '#{unattend_file(host)}' -BootImagePath 'boot\\#{wdsify_architecture(host.architecture)}\\images\\#{(host.wds_boot_image || boot_images.first).file_name}' -PxePromptPolicy 'NoPrompt'")
-    end
+    run_pwsh("New-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}' -DeviceName '#{host.name}' -WdsClientUnattend '#{unattend_file(host)}' -BootImagePath 'boot\\#{wdsify_architecture(host.architecture)}\\images\\#{(host.wds_boot_image || boot_images.first).file_name}' -PxePromptPolicy 'NoPrompt'")
   end
 
   def delete_client(host)
     raise NotImplementedError, 'Not finished yet'
     delete_unattend(host)
 
-    connection.shell(:powershell) do |sh|
-      sh.run("Remove-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}'")
-    end
+    run_pwsh("Remove-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}'", json: false)
   end
 
   def all_images
@@ -162,9 +155,10 @@ class WdsServer < ApplicationRecord
 
   def unattend_path
     cache.cache(:unattend_path) do
-      JSON.parse(connection.shell(:powershell) do |sh|
-        sh.run('Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\WDSServer\Providers\WDSTFTP -Name RootFolder | select RootFolder | ConvertTo-Json -Compress')
-      end, symbolize_names: true)[:RootFolder]
+      JSON.parse(
+        run_pwsh('Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\WDSServer\Providers\WDSTFTP -Name RootFolder | select RootFolder'),
+        symbolize_names: true
+      )[:RootFolder]
     end
   end
 
@@ -187,6 +181,7 @@ class WdsServer < ApplicationRecord
     raise 'No provisioning interface available' unless iface
 
     raise NotImplementedException, 'TODO: Not implemented yet'
+    raise NotImplementedException, 'TODO: Not implemented yet' if SETTINGS[:wds_unattend_group]
 
     # TODO: render template, send as heredoc
     template = host.operatingsystem.provisioning_templates.find { |t| t.template_kind.name == 'wds_unattend' }
@@ -198,33 +193,33 @@ class WdsServer < ApplicationRecord
 
     template_data = host.render_template template: template
 
-    connection.shell(:powershell) do |sh|
-      file_path = unattend_file(host)
+    file_path = unattend_file(host)
+    script = []
+    script << "$unattend_render = @'\n#{template_data}\n'@"
+    script << "New-Item -Path '#{file_path}' -ItemType 'file' -Value $unattend_render"
 
-      sh.run("$unattend_render = @'\n#{template_data}\n'@")
-      sh.run("New-Item -Path '#{file_path}' -ItemType 'file' -Value $unattend_render")
+    source_image = host.wds_facet.install_image
+    target_image = target_image_for(host)
 
-      source_image = host.wds_facet.install_image
-      target_image = target_image_for(host)
-      if SETTINGS[:wds_unattend_group]
-        raise NotImplementedException, 'TODO: Not implemented yet'
-        # New-WdsInstallImageGroup -Name #{SETTINGS[:wds_unattend_group]}
-        # Export-WdsInstallImage -ImageGroup <Group> ...
-        # Import-WdsInstallImage -ImageGroup #{SETTINGS[:wds_unattend_group]} -UnattendFile '#{file_path}' -OverwriteUnattend ...
-      else
-        sh.run("Copy-WdsInstallImage -ImageGroup '#{source_image.image_group}' -FileName '#{source_image.file_name}' -ImageName '#{source_image.image_name}' -NewFileName '#{target_image.file_name}' -NewImageName '#{target_image.image_name}'")
-        sh.run("Set-WdsInstallImage -ImageGroup '#{target_image.image_group}' -FileName '#{target_image.file_name}' -ImageName '#{target_image.image_name}' -DisplayOrder 99999 -UnattendFile '#{file_path}' -OverwriteUnattend")
-      end
+    if SETTINGS[:wds_unattend_group]
+      # New-WdsInstallImageGroup -Name #{SETTINGS[:wds_unattend_group]}
+      # Export-WdsInstallImage -ImageGroup <Group> ...
+      # Import-WdsInstallImage -ImageGroup #{SETTINGS[:wds_unattend_group]} -UnattendFile '#{file_path}' -OverwriteUnattend ...
+    else
+      script << "Copy-WdsInstallImage -ImageGroup '#{source_image.image_group}' -FileName '#{source_image.file_name}' -ImageName '#{source_image.image_name}' -NewFileName '#{target_image.file_name}' -NewImageName '#{target_image.image_name}'"
+      script << "Set-WdsInstallImage -ImageGroup '#{target_image.image_group}' -FileName '#{target_image.file_name}' -ImageName '#{target_image.image_name}' -DisplayOrder 99999 -UnattendFile '#{file_path}' -OverwriteUnattend"
     end
+
+    run_pwsh script.join("\n"), json: false
   end
 
   def delete_unattend(host)
     image = target_image_for(host)
 
-    connection.shell(:powershell) do |sh|
-      sh.run("Remove-WdsInstallImage -ImageGroup '#{image.image_group}' -ImageName '#{image.image_name}' -FileName '#{image.file_name}'")
-      sh.run("Remove-Item -Path '#{unattend_file(host)}'")
-    end.errcode.zero?
+    command = []
+    command << "Remove-WdsInstallImage -ImageGroup '#{image.image_group}' -ImageName '#{image.image_name}' -FileName '#{image.file_name}'"
+    command << "Remove-Item -Path '#{unattend_file(host)}'"
+    run_pwsh(command.join("\n"), json: false).errcode.zero?
   end
 
   def ensure_client(_host)
@@ -242,14 +237,12 @@ class WdsServer < ApplicationRecord
     objects = nil if objects.empty?
 
     unless objects
-      begin
-        result = connection.shell(:powershell) do |s|
-          s.run("Get-WDS#{type.to_s.capitalize}Image #{"-ImageName '#{name.sub("'", "`'")}'" if name} | ConvertTo-Json -Compress")
-        end
+      result = run_pwsh "Get-WDS#{type.to_s.capitalize}Image#{" -ImageName '#{name.sub("'", "`'")}'" if name}"
 
+      begin
         objects = underscore_result([JSON.parse(result.stdout)].flatten)
       rescue JSON::ParserError => e
-        ::Rails.logger.error "#{e.class}: #{e}\n#{result}"
+        ::Rails.logger.error "Failed to parse images - #{e.class}: #{e}, the data was;\n#{result.inspect}"
         raise e
       end
     end
@@ -267,6 +260,14 @@ class WdsServer < ApplicationRecord
       result.to_h { |k, v| [k.to_s.underscore.to_sym, underscore_result(v)] }
     else
       result
+    end
+  end
+
+  def run_pwsh(command, json: true)
+    cmd_arr = [command]
+    cmd_arr << '| ConvertTo-Json -Compress' if json
+    connection.shell(:powershell) do |s|
+      s.run cmd_arr.join(' ')
     end
   end
 
