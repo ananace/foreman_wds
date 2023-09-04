@@ -58,8 +58,10 @@ class WdsServer < ApplicationRecord
   end
 
   def client(host)
+    device_ids = [host.mac.upcase.tr(':', '-'), host.name]
+    device_names = [host.name, host.shortname]
     clients.find do |c|
-      [host.mac.upcase.tr(':', '-'), host.name].include?(c[:device_id]) || [host.name, host.shortname].include?(c[:device_name])
+      device_ids.include?(c[:device_id]) || device_names.include?(c[:device_name])
     end
   end
 
@@ -79,7 +81,20 @@ class WdsServer < ApplicationRecord
     raise NotImplementedError, 'Not finished yet'
     ensure_unattend(host)
 
-    run_pwsh("New-WdsClient -DeviceID '#{host.mac.upcase.delete ':'}' -DeviceName '#{host.name}' -WdsClientUnattend '#{unattend_file(host)}' -BootImagePath 'boot\\#{wdsify_architecture(host.architecture)}\\images\\#{(host.wds_boot_image || boot_images.first).file_name}' -PxePromptPolicy 'NoPrompt'")
+    run_pwsh [
+      'New-WdsClient',
+      "-DeviceID '#{host.mac.upcase.delete ':'}'",
+      "-DeviceName '#{host.name}'",
+      "-WdsClientUnattend '#{unattend_file(host)}'",
+      '-BootImagePath',
+      [
+        'boot',
+        wdsify_architecture(host.architecture),
+        'images',
+        (host.wds_boot_image || boot_images.first).file_name
+      ].join('\\').then { |path| "'#{path}'" },
+      "-PxePromptPolicy 'NoPrompt'"
+    ].join(' ')
   end
 
   def delete_client(host)
@@ -156,7 +171,14 @@ class WdsServer < ApplicationRecord
   def unattend_path
     cache.cache(:unattend_path) do
       JSON.parse(
-        run_pwsh('Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\WDSServer\Providers\WDSTFTP -Name RootFolder | select RootFolder'),
+        run_pwsh(
+          [
+            'Get-ItemProperty',
+            '  -Path HKLM:\SYSTEM\CurrentControlSet\Services\WDSServer\Providers\WDSTFTP',
+            '  -Name RootFolder',
+            '| select RootFolder'
+          ].map(&:strip).join(' ')
+        ),
         symbolize_names: true
       )[:RootFolder]
     end
@@ -206,8 +228,23 @@ class WdsServer < ApplicationRecord
       # Export-WdsInstallImage -ImageGroup <Group> ...
       # Import-WdsInstallImage -ImageGroup #{SETTINGS[:wds_unattend_group]} -UnattendFile '#{file_path}' -OverwriteUnattend ...
     else
-      script << "Copy-WdsInstallImage -ImageGroup '#{source_image.image_group}' -FileName '#{source_image.file_name}' -ImageName '#{source_image.image_name}' -NewFileName '#{target_image.file_name}' -NewImageName '#{target_image.image_name}'"
-      script << "Set-WdsInstallImage -ImageGroup '#{target_image.image_group}' -FileName '#{target_image.file_name}' -ImageName '#{target_image.image_name}' -DisplayOrder 99999 -UnattendFile '#{file_path}' -OverwriteUnattend"
+      script << [
+        'Copy-WdsInstallImage',
+        "  -ImageGroup '#{source_image.image_group}'",
+        "  -FileName '#{source_image.file_name}'",
+        "  -ImageName '#{source_image.image_name}'",
+        "  -NewFileName '#{target_image.file_name}'",
+        "  -NewImageName '#{target_image.image_name}'"
+      ].map(&:strip).join(' ')
+      script << [
+        'Set-WdsInstallImage',
+        "  -ImageGroup '#{target_image.image_group}'",
+        "  -FileName '#{target_image.file_name}'",
+        "  -ImageName '#{target_image.image_name}'",
+        '  -DisplayOrder 99999',
+        "  -UnattendFile '#{file_path}'",
+        '  -OverwriteUnattend'
+      ].map(&:strip).join(' ')
     end
 
     run_pwsh script.join("\n"), json: false
@@ -217,7 +254,12 @@ class WdsServer < ApplicationRecord
     image = target_image_for(host)
 
     command = []
-    command << "Remove-WdsInstallImage -ImageGroup '#{image.image_group}' -ImageName '#{image.image_name}' -FileName '#{image.file_name}'"
+    command << [
+      'Remove-WdsInstallImage',
+      "  -ImageGroup '#{image.image_group}'",
+      "  -ImageName '#{image.image_name}'",
+      "  -FileName '#{image.file_name}'"
+    ].map(&:strip).join(' ')
     command << "Remove-Item -Path '#{unattend_file(host)}'"
     run_pwsh(command.join("\n"), json: false).errcode.zero?
   end
@@ -264,10 +306,10 @@ class WdsServer < ApplicationRecord
   end
 
   def run_pwsh(command, json: true)
-    cmd_arr = [command]
-    cmd_arr << '| ConvertTo-Json -Compress' if json
+    command = [command] unless command.is_a? Array
+    command << '| ConvertTo-Json -Compress' if json
     connection.shell(:powershell) do |s|
-      s.run cmd_arr.join(' ')
+      s.run command.join(' ')
     end
   end
 
