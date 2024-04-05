@@ -2,6 +2,8 @@
 
 module ForemanWds
   module HostsControllerExtensions
+    extend ActiveSupport::Concern
+
     included do
       before_action :cleanup_wds_params
 
@@ -17,8 +19,10 @@ module ForemanWds
     end
 
     def cleanup_wds_params
-      # Don't create a WDS facet unless provisioning with it
-      params[:host].delete :wds_facet_attributes if params[:host] && params[:host][:provision_method] != 'wds'
+      return unless params.dig(:host, :provision_method)
+
+      # Don't create a WDS facet if not provisioning with it
+      params[:host].delete :wds_facet_attributes if params.dig(:host, :provision_method) != 'wds'
     end
   end
 end

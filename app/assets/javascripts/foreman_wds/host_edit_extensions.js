@@ -32,13 +32,6 @@ function wds_os_selected() {
   }
 };
 
-function wds_content_loaded() {
-  $('#wds_provisioning').detach().insertBefore('#media_select');
-  $('#host_provision_method_build').prop('disabled', false);
-  $('#host_provision_method_wds').prop('disabled', false);
-};
-
-
 function wds_provision_method_selected() {
   $('div[id*=_provisioning]').hide();
   $('#network_provisioning').show();
@@ -48,13 +41,23 @@ function wds_provision_method_selected() {
     $('#wds_image_select select').attr('disabled', true);
   }
 }
-$(document)
-  .on('change', '#host_provision_method_wds', wds_provision_method_selected)
-  .on('change', '.host-architecture-os-select', wds_os_selected)
-  .on('ContentLoad', wds_content_loaded);
 
-$(function() {
+function wds_enable_provision_methods() {
+  $('#provision_method').show();
+  $('#host_provision_method_build').prop('disabled', false);
+  $('#host_provision_method_wds').prop('disabled', false);
+
   if($('#host_provision_method_wds').is(':checked')) {
     wds_provision_method_selected();
   }
+};
+
+$(document)
+  .on('change', '#host_provision_method_wds', wds_provision_method_selected)
+  .on('change', '.host-architecture-os-select', wds_os_selected);
+
+$(function() {
+  $('#wds_provisioning').detach().insertBefore('#media_select');
+
+  wds_enable_provision_methods();
 });
