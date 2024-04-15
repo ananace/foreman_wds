@@ -38,7 +38,7 @@ function wds_provision_method_selected() {
   $('#wds_provisioning').show();
 
   if ($('#wds_image_select select').val() === '') {
-    $('#wds_image_select select').attr('disabled', true);
+    $('#wds_image_select select').prop('disabled', true);
   }
 }
 
