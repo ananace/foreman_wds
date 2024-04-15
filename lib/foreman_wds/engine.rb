@@ -83,8 +83,12 @@ module ForemanWds
       HostsController.include ForemanWds::HostsControllerExtensions
       UnattendedController.prepend ForemanWds::UnattendedControllerExtensions
 
-      ComputeResource.providers.each do |_k, const|
+      ComputeResource.providers.each_value do |const|
         Kernel.const_get(const).send(:prepend, ForemanWds::ComputeResourceExtensions)
+      end
+
+      if Foreman::Plugin.installed?('foreman_discovery')
+        DiscoveredHostsController.include ForemanWds::HostsControllerExtensions
       end
     rescue StandardError => e
       Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
