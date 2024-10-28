@@ -15,6 +15,7 @@ If you don't want the lifecycle management features of Foreman, you can ignore t
 
 | Foreman Version | Plugin Version |
 | --------------- | -------------- |
+| >= 3.12         | >= 0.0.4       |
 | >= 1.23         | any            |
 
 ## Installation
