@@ -7,7 +7,7 @@ module ForemanWds
     included do
       before_action :cleanup_wds_params
 
-      define_action_permission %w[wds_server_selected], :edit
+      define_action_permission %w[wds_server_selected], :edit if respond_to? :define_action_permission
     end
 
     def wds_server_selected

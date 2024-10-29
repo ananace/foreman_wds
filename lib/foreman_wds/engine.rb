@@ -33,6 +33,7 @@ module ForemanWds
 
       if Foreman::Plugin.installed?('foreman_discovery')
         DiscoveredHostsController.include ForemanWds::HostsControllerExtensions
+        DiscoveredHostsController.prepend ForemanWds::DiscoveredHostsControllerExtensions
       end
     rescue StandardError => e
       Rails.logger.fatal "foreman_wds: skipping engine hook (#{e})"
