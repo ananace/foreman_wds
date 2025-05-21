@@ -1,7 +1,8 @@
 function wds_server_selected(element) {
-  var url = $(element).attr('data-url');
-  var type = $(element).attr('data-type');
-  var attrs = {};
+  const url = $(element).attr('data-url');
+  const type = $(element).attr('data-type');
+  const attrs = {};
+
   attrs[type] = attribute_hash(['architecture_id', 'operatingsystem_id', 'wds_server_id']);
   tfm.tools.showSpinner();
   $.ajax({
@@ -43,7 +44,7 @@ function wds_provision_method_selected() {
 }
 
 function wds_enable_provision_methods() {
-  $('#provision_method').show();
+  $('#provisioning_method').show();
   $('#host_provision_method_build').prop('disabled', false);
   $('#host_provision_method_wds').prop('disabled', false);
 
@@ -54,7 +55,8 @@ function wds_enable_provision_methods() {
 
 $(document)
   .on('change', '#host_provision_method_wds', wds_provision_method_selected)
-  .on('change', '.host-architecture-os-select', wds_os_selected);
+  .on('change', '.host-architecture-os-select', wds_os_selected)
+  .on('ContentLoad', wds_enable_provision_methods);
 
 $(function() {
   $('#wds_provisioning').detach().insertBefore('#media_select');
